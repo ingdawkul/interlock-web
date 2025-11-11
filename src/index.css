@@ -1,0 +1,9 @@
+/* stylelint-disable at-rule-no-unknown */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* stylelint-enable at-rule-no-unknown */
+
+
+html, body, #root { height: 100%; }
+body { @apply bg-gray-50 text-gray-800; }
