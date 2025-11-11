@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 
 
 export default defineConfig({
-plugins: [react()],
-base: '/interlock-web/'
+base: '/interlock-web/',
+plugins: [react()]
+
 })
