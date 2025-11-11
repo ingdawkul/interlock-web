@@ -1,4 +1,4 @@
-# Deploy static site to GitHub Pages
+# .github/workflows/deploy.yml
 name: Deploy to GitHub Pages
 
 on:
@@ -21,30 +21,38 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+
     steps:
+      # 1️⃣ Hent repo
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      # 2️⃣ Node.js setup
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: lts/*
+          node-version: 'lts/*'
           cache: 'npm'
 
+      # 3️⃣ Installer dependencies
       - name: Install dependencies
         run: npm ci
 
+      # 4️⃣ Bygg prosjektet med Vite
       - name: Build project
         run: npm run build
 
+      # 5️⃣ Configure GitHub Pages for workflow deploy
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      # 6️⃣ Upload hele dist-folder som artifact
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: './dist'
+          path: dist   # ✅ hele dist, ikke bare index.html
 
+      # 7️⃣ Deploy artifact til GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
