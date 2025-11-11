@@ -2,7 +2,7 @@
   "name": "interlock-web",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://ingdawkul.github.io/interlock-web",
+  "homepage": "https://ingdawkul.github.io/interlock-web/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
