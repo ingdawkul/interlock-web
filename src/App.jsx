@@ -88,31 +88,30 @@ export default function App() {
 
       {/* Viser valgte filer */}
       {rawFiles.length > 0 && (
-        <div className="mb-4 bg-white border rounded p-3">
+        <div className="mb-4 bg-white border rounded-lg p-3">
           <p className="font-semibold mb-1">Valgte filer:</p>
           <ul className="list-disc list-inside text-sm">
             {rawFiles.map((file, i) => (
               <li key={i}>{file}</li>
             ))}
           </ul>
-        </div>
-      )}
-
       <div className="mb-4">
         <StatsBar totalLines={totalLines} matches={matchLines} uniqueCount={Object.keys(results).length} />
       </div>
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-        <div className="lg:col-span-2">
+    <div className="mb-6 max-h-64  overflow-y-auto">
+      <RecentInterlocks interlocks={recentInterlocks} />
+    </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white rounded-lg p-2">
           <InterlockTable results={results} onSelect={setSelected} query={query} />
         </div>
-        <div>
-          <RecentInterlocks interlocks={recentInterlocks} />
-        </div>
-      </div>
 
-      <div>
-        <DetailTable data={selectedData} />
+        <div className="bg-white rounded-lg p-2">
+          <DetailTable data={selectedData} />
+        </div>
       </div>
 
       <footer className="mt-8 text-xs text-gray-500">

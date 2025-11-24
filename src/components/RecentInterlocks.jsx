@@ -46,7 +46,7 @@ export default function RecentInterlocks({ interlocks }) {
     <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 shadow-lg">
       <h2 className="text-lg font-semibold text-gray-100 mb-4">Siste Interlocks</h2>
 
-      <ul className="space-y-3 max-h-[75vh] overflow-y-auto pr-1">
+      <ul className="space-y-3  overflow-y-auto pr-1">
         {recent.map((entry, i) => (
           <li
             key={i}
