@@ -11,6 +11,16 @@ export default function RecentInterlocks({ interlocks }) {
     );
   }
 
+  // Hvis flere filer er valgt → analyser kun den nyeste filen
+  const files = [...new Set(interlocks.map((i) => i.file))];
+
+  let filteredInterlocks = interlocks;
+
+  if (files.length > 1) {
+    const newest = files.sort().reverse()[0];
+    filteredInterlocks = interlocks.filter((i) => i.file === newest);
+  }
+
   // Formatér tid (HH:MM:SS)
   const formatTime = (timeStr) => {
     if (!timeStr) return "";
@@ -33,7 +43,7 @@ export default function RecentInterlocks({ interlocks }) {
   };
 
   // Sorter interlocks fra nyeste til eldste
-  const sorted = [...interlocks].sort((a, b) => {
+  const sorted = [...filteredInterlocks].sort((a, b) => {
     const lastA = a.times?.[a.times.length - 1];
     const lastB = b.times?.[b.times.length - 1];
     return new Date(`1970-01-01T${lastB}`) - new Date(`1970-01-01T${lastA}`);
@@ -46,19 +56,17 @@ export default function RecentInterlocks({ interlocks }) {
     <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 shadow-lg">
       <h2 className="text-lg font-semibold text-gray-100 mb-4">Siste Interlocks</h2>
 
-      <ul className="space-y-3  overflow-y-auto pr-1">
+      <ul className="space-y-3 overflow-y-auto pr-1">
         {recent.map((entry, i) => (
           <li
             key={i}
             className="bg-gray-800/60 hover:bg-gray-800 border border-gray-700 rounded-xl p-3 transition-all"
           >
-            {/* Tid og filnavn */}
             <div className="flex justify-between items-center text-xs text-gray-400 mb-1">
               <span>{formatTime(entry.times?.[entry.times.length - 1])}</span>
               <span className="text-gray-500">{entry.file}</span>
             </div>
 
-            {/* Beskrivelse + Type */}
             <div className="flex items-start gap-3">
               {getIcon(entry.description)}
               <div>
