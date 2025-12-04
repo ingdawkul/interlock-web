@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import FilePicker from './components/FilePicker'
 import StatsBar from './components/StatsBar'
 import InterlockTable from './components/InterlockTable'
@@ -18,8 +18,45 @@ export default function App() {
 
   const meta = { fileCount: rawFiles.length, totalLines, matchLines }
 
+  // ---------------------------------------------------------
+  // GLOBAL DROP-HÅNDTERING
+  // ---------------------------------------------------------
+  const handleDroppedFiles = useCallback(async (fileList) => {
+    const fileObjs = await Promise.all(
+      Array.from(fileList).map(f =>
+        f.text().then(txt => ({ name: f.name, text: txt }))
+      )
+    )
+    handleFiles(fileObjs)
+  }, [])
+
+  useEffect(() => {
+    const preventDefaults = (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+
+    const handleDrop = (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      if (e.dataTransfer.files?.length > 0) {
+        handleDroppedFiles(e.dataTransfer.files)
+      }
+    }
+
+    window.addEventListener('dragover', preventDefaults)
+    window.addEventListener('drop', handleDrop)
+
+    return () => {
+      window.removeEventListener('dragover', preventDefaults)
+      window.removeEventListener('drop', handleDrop)
+    }
+  }, [handleDroppedFiles])
+  // ---------------------------------------------------------
+
   const handleFiles = (files) => {
     setRawFiles(files.map(f => f.name))
+
     let combinedResults = {}
     let total = 0
     let matches = 0
@@ -29,18 +66,22 @@ export default function App() {
       const { results: r, totalLines: t, matchLines: m } = parseLogText(f.text)
       total += t
       matches += m
+
       for (const [id, data] of Object.entries(r)) {
         if (!combinedResults[id]) combinedResults[id] = { entries: [], total: 0 }
+
         combinedResults[id].total += data.total
+
         for (const e of data.entries) {
           newInterlocks.push({
             id,
             type: e.Type,
             description: e.description,
             times: e.Times,
-            Dates: e.Dates || [], // Husk datoer fra parser
+            Dates: e.Dates || [],
             file: f.name
           })
+
           let found = false
           for (const ex of combinedResults[id].entries) {
             if (ex.description === e.description && ex.Type === e.Type) {
@@ -50,21 +91,23 @@ export default function App() {
               break
             }
           }
+
           if (!found) combinedResults[id].entries.push({ ...e })
         }
       }
     }
+
     setResults(combinedResults)
     setTotalLines(total)
     setMatchLines(matches)
     setSelected(null)
 
-    // Sorter interlocks etter siste tidspunkt
     const sortedRecent = newInterlocks.sort((a, b) => {
       const lastA = a.times[a.times.length - 1]
       const lastB = b.times[b.times.length - 1]
       return new Date(lastB) - new Date(lastA)
     })
+
     setRecentInterlocks(sortedRecent)
   }
 
@@ -75,7 +118,7 @@ export default function App() {
     return { id: selected, entries: data.entries }
   }, [selected, results])
 
-  // **Definer showDate basert på antall valgte filer**
+  // showDate = TRUE når >1 fil valgt
   const showDate = rawFiles.length > 1
 
   return (
@@ -85,7 +128,7 @@ export default function App() {
       </header>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-        <FilePicker onFiles={handleFiles} />
+        <FilePicker onFiles={handleDroppedFiles} />
         <div className="flex gap-2 items-center">
           <input
             value={query}
@@ -97,7 +140,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* Viser valgte filer */}
       {rawFiles.length > 0 && (
         <div className="mb-4 bg-white border rounded-lg p-3">
           <p className="font-semibold mb-1">Valgte filer:</p>
@@ -130,9 +172,7 @@ export default function App() {
         </div>
       </div>
 
-      <footer className="mt-8 text-xs text-gray-500">
-        <div></div>
-      </footer>
+      <footer className="mt-8 text-xs text-gray-500"></footer>
     </div>
   )
 }

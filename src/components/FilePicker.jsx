@@ -1,40 +1,15 @@
 import React, { useCallback } from 'react';
 
 export default function FilePicker({ onFiles }) {
-  const handleFiles = useCallback(async (files) => {
-    const arr = await Promise.all(
-      Array.from(files).map(f =>
-        f.text().then(txt => ({ name: f.name, text: txt }))
-      )
-    );
 
-    const showDate = arr.length > 1;
-    onFiles(arr, showDate);
-  }, [onFiles]);
-
-  const handleInputChange = (e) => {
-    handleFiles(e.target.files);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleFiles(e.dataTransfer.files);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
+  const handleInputChange = async (e) => {
+    onFiles(e.target.files)
+  }
 
   return (
     <div className="flex gap-4 items-center">
-      <div
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        className="border-2 border-dashed border-gray-400 rounded p-6 text-center cursor-pointer hover:bg-gray-100 flex-1"
-      >
-        Dra og slipp filer her
+      <div className="border-2 border-dashed border-gray-400 rounded p-6 text-center text-gray-600 bg-gray-50 flex-1">
+        Du kan nå slippe filer hvor som helst på siden
       </div>
 
       <label className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer hover:opacity-95">
