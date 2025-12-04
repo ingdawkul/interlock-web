@@ -1,0 +1,46 @@
+:root {
+  /* Bakgrunn */
+  --bg-primary: #1D1F29;
+  --bg-secondary: #282C34;
+
+  /* Tekst */
+  --text-primary: #F4F6F8;
+  --text-secondary: #D1D9E6;
+
+  /* Knapper */
+  --btn-primary: #46B29D;
+  --btn-primary-hover: #3B9D6F;
+
+  --btn-secondary: #282C34;
+  --btn-secondary-hover: #000000;
+
+  /* Varsler */
+  --error: #D32F2F;
+  --warning: #FF9800;
+  --info: #4CAF50;
+
+  /* Tabeller */
+  --table-header: #333A47;
+  --table-row-odd: #2C3E50;
+  --table-row-even: #34495E;
+  --table-row-active: #1F3A60;
+
+  --table-row-hover: #44556C;
+
+  /* Søk/inputs */
+  --input-bg: #F1F3F8;
+  --input-text: #1D1F29;
+
+  /* Diagramfarger */
+  --chart-blue: #4A90E2;
+  --chart-red: #E74C3C;
+  --chart-green: #27AE60;
+
+  --bg-card: #000000;
+  --bg-lines: #282C34;
+  --text-primary: #F4F6F8;
+  --text-secondary: #D1D9E6;
+  --accent-green: #3B9D6F;
+  --accent-green-hover: #46B29D;
+  --border-soft: #333A47;
+}

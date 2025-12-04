@@ -11,8 +11,33 @@ export default function DetailTable({ data, showDate }) {
 
   const formatDateTime = (date, time) => {
     if (!showDate || !date) return time;
-      return showDate ? <><span className="font-bold">{date}</span> {time}</> : time
+    return (
+      <>
+        <span className="font-bold">{date}</span> {time}
+      </>
+    );
   };
+
+  // ---------------------------
+  // 🔥 SORTERING NÅR DATO SKAL VISES
+  // ---------------------------
+  let sortedEntries = data.entries;
+
+  if (showDate) {
+    sortedEntries = [...data.entries].sort((a, b) => {
+      // Hent første dato/tid i hvert entry
+      const aDate = a.Dates?.[0] || "";
+      const aTime = a.Times?.[0] || "";
+      const bDate = b.Dates?.[0] || "";
+      const bTime = b.Times?.[0] || "";
+
+      // Kombiner til ett tall for sortering
+      const aDT = new Date(`${aDate} ${aTime}`);
+      const bDT = new Date(`${bDate} ${bTime}`);
+
+      return aDT - bDT;
+    });
+  }
 
   return (
     <div className="bg-white border rounded-2xl p-4 shadow-lg">
@@ -30,7 +55,7 @@ export default function DetailTable({ data, showDate }) {
           </tr>
         </thead>
         <tbody>
-          {data.entries.map((e, idx) => (
+          {sortedEntries.map((e, idx) => (
             <tr key={idx} className="align-top">
               <td className="py-2">
                 {e.Times.map((time, i) => {

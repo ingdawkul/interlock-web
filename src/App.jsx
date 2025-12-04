@@ -6,6 +6,7 @@ import DetailTable from './components/DetailTable'
 import ExportButtons from './components/ExportButtons'
 import RecentInterlocks from './components/RecentInterlocks'
 import { parseLogText } from './utils/parser'
+import "./theme.css";
 
 export default function App() {
   const [rawFiles, setRawFiles] = useState([])
@@ -52,8 +53,8 @@ export default function App() {
       window.removeEventListener('drop', handleDrop)
     }
   }, [handleDroppedFiles])
-  // ---------------------------------------------------------
 
+  // ---------------------------------------------------------
   const handleFiles = (files) => {
     setRawFiles(files.map(f => f.name))
 
@@ -118,37 +119,41 @@ export default function App() {
     return { id: selected, entries: data.entries }
   }, [selected, results])
 
-  // showDate = TRUE når >1 fil valgt
   const showDate = rawFiles.length > 1
 
   return (
-    <div className="p-6 max-w-[1400px] mx-auto">
-      <header className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Interlock Analyzer</h1>
-      </header>
-
+    <div className="app-container p-6 max-w-[1400px] mx-auto text-primary">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-primary">
+          <img 
+            src="/interlock-web/bjorn.png" 
+            alt="favicon" 
+            className="w-48 h-20 rounded-lg"
+          />
+        </h1>
         <FilePicker onFiles={handleDroppedFiles} />
+
         <div className="flex gap-2 items-center">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Søk (ID, Type eller Beskrivelse)"
-            className="px-3 py-2 border rounded w-72"
+            className="px-3 py-2 rounded w-72 border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-600 outline-none"
           />
           <ExportButtons results={results} meta={meta} />
         </div>
       </div>
 
       {rawFiles.length > 0 && (
-        <div className="mb-4 bg-white border rounded-lg p-3">
+        <div className="panel mb-4 border rounded-lg p-3">
           <p className="font-semibold mb-1">Valgte filer:</p>
-          <ul className="list-disc list-inside text-sm">
+          <ul className="list-disc list-inside text-sm mb-6">
             {rawFiles.map((file, i) => (
               <li key={i}>{file}</li>
             ))}
           </ul>
-          <div className="mb-4">
+
+          <div className="mt-6">
             <StatsBar
               totalLines={totalLines}
               matches={matchLines}
@@ -158,21 +163,25 @@ export default function App() {
         </div>
       )}
 
-      <div className="mb-6 max-h-64 overflow-y-auto">
+      <div className="mb-6 max-h-64 overflow-y-auto panel">
         <RecentInterlocks interlocks={recentInterlocks} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white rounded-lg p-2">
-          <InterlockTable results={results} onSelect={setSelected} query={query} />
+        <div className="panel rounded-lg p-2">
+          <InterlockTable
+            results={results}
+            onSelect={setSelected}
+            query={query}
+          />
         </div>
 
-        <div className="bg-white rounded-lg p-2">
+        <div className="panel rounded-lg p-2">
           <DetailTable data={selectedData} showDate={showDate} />
         </div>
       </div>
 
-      <footer className="mt-8 text-xs text-gray-500"></footer>
+      <footer className="mt-8 text-xs text-secondary panel"></footer>
     </div>
   )
 }
