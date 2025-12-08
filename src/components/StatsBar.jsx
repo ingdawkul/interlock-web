@@ -5,10 +5,9 @@ export default function StatsBar({ totalLines, matches, uniqueCount }) {
     <div className="flex flex-wrap gap-4 items-center text-sm">
 
       <div
-        className="p-3 rounded shadow-sm border"
+        className="p-3 rounded-2xl shadow-sm border"
         style={{
-          backgroundColor: 'var(--bg-lines)',
-          color: 'var(--text-primary)',
+          color: 'var(--btn-secondary-hover)',
           borderColor: 'var(--border-soft)'
         }}
       >
@@ -16,10 +15,9 @@ export default function StatsBar({ totalLines, matches, uniqueCount }) {
       </div>
 
       <div
-        className="p-3 rounded shadow-sm border"
+        className="p-3 rounded-2xl shadow-sm border"
         style={{
-          backgroundColor: 'var(--bg-lines)',
-          color: 'var(--text-primary)',
+          color: 'var(--btn-secondary-hover)',
           borderColor: 'var(--border-soft)'
         }}
       >
@@ -27,10 +25,9 @@ export default function StatsBar({ totalLines, matches, uniqueCount }) {
       </div>
 
       <div
-        className="p-3 rounded shadow-sm border"
+        className="p-3 rounded-2xl shadow-sm border"
         style={{
-          backgroundColor: 'var(--bg-lines)',
-          color: 'var(--text-primary)',
+          color: 'var(--btn-secondary-hover)',
           borderColor: 'var(--border-soft)'
         }}
       >

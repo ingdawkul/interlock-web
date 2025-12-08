@@ -1,14 +1,20 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 
-export default function FilePicker({ onFiles }) {
+export default function FilePicker({ onFiles, height = "6vh" }) {
   const [isDragging, setIsDragging] = useState(false);
-  const [failedFiles, setFailedFiles] = useState([]);
+
+  // Hele filsettet brukeren valgte
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
   const [error, setError] = useState("");
+  const [failed, setFailed] = useState([]);   // kun for feilmelding
 
   function tryReadFiles(fileList) {
     const files = Array.from(fileList);
+    setSelectedFiles(files); // <-- viktig! behold hele settet for retry
+
     const okFiles = [];
-    const failed = [];
+    const failedFiles = [];
 
     let pending = files.length;
 
@@ -21,23 +27,26 @@ export default function FilePicker({ onFiles }) {
       };
 
       reader.onerror = () => {
-        failed.push(file);
+        failedFiles.push(file);
         if (--pending === 0) finish();
       };
 
       try {
         reader.readAsText(file);
       } catch (e) {
-        failed.push(file);
+        failedFiles.push(file);
         if (--pending === 0) finish();
       }
     });
 
     function finish() {
-      if (failed.length > 0) {
-        setError(`Noen filer kunne ikke leses (${failed.length}). De kan være åpne i et annet program.`);
-        setFailedFiles(failed);
+      if (failedFiles.length > 0) {
+        setError(
+          `Noen filer kunne ikke leses (${failedFiles.length}). De kan være åpne i et annet program.`
+        );
+        setFailed(failedFiles);
       }
+
       if (okFiles.length > 0) {
         onFiles(okFiles);
       }
@@ -46,8 +55,10 @@ export default function FilePicker({ onFiles }) {
 
   const handleInputChange = (e) => {
     if (!e.target.files) return;
+
     setError("");
-    setFailedFiles([]);
+    setFailed([]);
+
     tryReadFiles(e.target.files);
   };
 
@@ -64,61 +75,52 @@ export default function FilePicker({ onFiles }) {
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
+
     if (e.dataTransfer.files?.length > 0) {
       setError("");
-      setFailedFiles([]);
+      setFailed([]);
       tryReadFiles(e.dataTransfer.files);
     }
   };
 
+  // ⟶ Viktig: retry skal bruke selectedFiles (hele settet)
   const retry = () => {
     setError("");
-    const retryList = [...failedFiles];
-    setFailedFiles([]);
-    tryReadFiles(retryList);
+    setFailed([]);
+    tryReadFiles(selectedFiles);
   };
 
   return (
     <div className="flex flex-col gap-3">
 
-      {/* Error + retry */}
+      {/* Feil + retry */}
       {error && (
         <div className="p-3 bg-red-200 text-red-900 rounded shadow">
           <div>{error}</div>
-          {failedFiles.length > 0 && (
-            <button
-              onClick={retry}
-              className="mt-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-800"
-            >
-              Prøv igjen
-            </button>
-          )}
+          <button
+            onClick={retry}
+            className="mt-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-800"
+          >
+            Prøv igjen
+          </button>
         </div>
       )}
 
-      {/* Drop area + file picker */}
+      {/* Drop area + knapper */}
       <div className="flex gap-4 items-center">
-
         <div
-          className={`border-2 border-dashed rounded p-6 text-center flex-1 transition-colors
-            ${isDragging 
-              ? "border-blue-600 bg-blue-50 text-blue-700 shadow-md" 
-              : "border-gray-400 bg-gray-50 text-gray-600"}`}
+          className={`border-4 border-dashed w-full rounded-2xl p-4 text-center flex-1 transition-colors cursor-pointer
+            ${isDragging
+              ? "border-blue-600 bg-blue-50 text-blue-700 shadow-md"
+              : "border-gray-400 bg-gray-50 text-gray-600 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700"}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          style={{ minHeight: height }}
+          onClick={() => document.getElementById("fileInput").click()}
         >
-          {isDragging
-            ? "Slipp filene her!"
-            : "Slipp filer hvor som helst på siden eller her"}
+          {isDragging ? "Slipp filene her!" : "Trykk her for å velge filer eller slipp dem her"}
         </div>
-
-        <button
-          onClick={() => document.getElementById('fileInput').click()}
-          className="px-3 py-2 rounded font-semibold bg-blue-600 text-white hover:bg-blue-900 transition-colors"
-        >
-          Velg filer
-        </button>
 
         <input
           id="fileInput"
