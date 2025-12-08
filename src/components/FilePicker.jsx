@@ -1,26 +1,23 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 
 export default function FilePicker({ onFiles, height = "6vh" }) {
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState([]);
 
-  const retryCountRef = useRef(0);
-  const maxRetries = 15;
-  const retryDelay = 500; // ms
+  // For feilmelding/UI
+  const [error, setError] = useState("");
+  const [failed, setFailed] = useState([]);
 
-  // ---------------------------------------------------------
-  // Leser ALLE filer, og hvis én feiler → trigges automatisk retry
-  // ---------------------------------------------------------
-  async function readAllFilesWithRetry(files) {
-    retryCountRef.current = 0;
-    await attemptRead(files);
-  }
+  // Stabil referanse som ALLTID husker alle filer valgt av brukeren
+  const filesRef = useRef([]);
 
-  async function attemptRead(files) {
+  // ------------------------------------------------------
+  //  FULL OG ROBUST LESING AV FILER MED AUTOMATISK RETRY
+  // ------------------------------------------------------
+  async function tryReadFiles(files, attempt = 1) {
     const okFiles = [];
     const failedFiles = [];
 
-    // Les alle filer parallelt
+    // Les ALLE filer parallelt (trygt)
     await Promise.all(
       files.map(
         (file) =>
@@ -39,7 +36,7 @@ export default function FilePicker({ onFiles, height = "6vh" }) {
 
             try {
               reader.readAsText(file);
-            } catch {
+            } catch (e) {
               failedFiles.push(file);
               resolve();
             }
@@ -47,47 +44,40 @@ export default function FilePicker({ onFiles, height = "6vh" }) {
       )
     );
 
-    // Hvis ingenting feilet → ferdig
-    if (failedFiles.length === 0) {
-      onFiles(okFiles);
-      return;
+    // Hvis noen filer feiler og vi har forsøk igjen → prøv igjen
+    if (failedFiles.length > 0 && attempt < 15) {
+      await new Promise((res) => setTimeout(res, 500));
+      return tryReadFiles(filesRef.current, attempt + 1);
     }
 
-    // Hvis FAIL og vi har flere forsøk → vent og prøv igjen
-    if (retryCountRef.current < maxRetries) {
-      retryCountRef.current++;
-
-      setTimeout(() => {
-        attemptRead(files);
-      }, retryDelay);
-
-      return;
+    // Hvis det MASSE feiler etter alle forsøk
+    if (failedFiles.length > 0) {
+      setError(
+        `Noen filer kunne ikke leses (${failedFiles.length}). De kan være åpne i et annet program.`
+      );
+      setFailed(failedFiles);
     }
 
-    // Hvis vi kommer hit betyr det at selv etter 15 forsøk var noe fortsatt locked
-    // Men: Vi sender fortsatt med alt som var OK
+    // Send KUN når vi har et endelig resultat (delvise er ikke lov)
     if (okFiles.length > 0) {
       onFiles(okFiles);
     }
-
-    // Feilmelding skal ikke vises grafisk – kun logges
-    console.warn(
-      `Noen filer kunne ikke leses etter ${maxRetries} forsøk:`,
-      failedFiles.map((f) => f.name)
-    );
   }
 
-  // ---------------------------------------------------------
-  // Input / drop handlers
-  // ---------------------------------------------------------
-
+  // ------------------------------------------------------
+  //  HÅNDTERING AV INPUT / DRAG & DROP
+  // ------------------------------------------------------
   const handleInputChange = (e) => {
     if (!e.target.files) return;
 
     const files = Array.from(e.target.files);
-    setSelectedFiles(files);
 
-    readAllFilesWithRetry(files);
+    // lagre FØR lesing
+    filesRef.current = files;
+    setError("");
+    setFailed([]);
+
+    tryReadFiles(files);
   };
 
   const handleDragOver = (e) => {
@@ -106,16 +96,44 @@ export default function FilePicker({ onFiles, height = "6vh" }) {
 
     if (e.dataTransfer.files?.length > 0) {
       const files = Array.from(e.dataTransfer.files);
-      setSelectedFiles(files);
 
-      readAllFilesWithRetry(files);
+      filesRef.current = files;
+      setError("");
+      setFailed([]);
+
+      tryReadFiles(files);
     }
   };
 
+  // ------------------------------------------------------
+  //  MANUELL RETRY (bruker ALLTID hele file-settet)
+  // ------------------------------------------------------
+  const retry = () => {
+    setError("");
+    setFailed([]);
+    tryReadFiles(filesRef.current);
+  };
+
+  // ------------------------------------------------------
+  //  RENDER
+  // ------------------------------------------------------
   return (
     <div className="flex flex-col gap-3">
+      
+      {/* Feilmelding + retry */}
+      {error && (
+        <div className="p-3 bg-red-200 text-red-900 rounded shadow">
+          <div>{error}</div>
+          <button
+            onClick={retry}
+            className="mt-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-800"
+          >
+            Prøv igjen
+          </button>
+        </div>
+      )}
 
-      {/* Drop + velg-knapp */}
+      {/* Drop area */}
       <div className="flex gap-4 items-center">
         <div
           className={`border-4 border-dashed w-full rounded-2xl p-4 text-center flex-1 transition-colors cursor-pointer
