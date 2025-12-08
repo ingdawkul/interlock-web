@@ -5,8 +5,8 @@ export default function FilePicker({ onFiles, height = "6vh" }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
 
   const retryCountRef = useRef(0);
-  const maxRetries = 15;
-  const retryDelay = 500;
+  const maxRetries = 30;
+  const retryDelay = 2000;
 
   // LESER FILER SEKVENTIELLT FOR MAKS STABILITET
   function readFilesSequentially(files, callback) {
