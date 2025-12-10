@@ -214,7 +214,6 @@ export default function App() {
         className="px-4 py-3 rounded-2xl p-4 min-w-96 border border-gray-400 focus:border-gray-600 focus:ring-1 focus:ring-gray-600 outline-none"
       />
     </div>
-
     <ul className="list-disc list-inside text-sm mb-6">
       {rawFiles.map((file, i) => (
         <li key={i}>{file}</li>

@@ -25,13 +25,11 @@ export default function DetailTable({ data, showDate }) {
 
   if (showDate) {
     sortedEntries = [...data.entries].sort((a, b) => {
-      // Hent første dato/tid i hvert entry
       const aDate = a.Dates?.[0] || "";
       const aTime = a.Times?.[0] || "";
       const bDate = b.Dates?.[0] || "";
       const bTime = b.Times?.[0] || "";
 
-      // Kombiner til ett tall for sortering
       const aDT = new Date(`${aDate} ${aTime}`);
       const bDT = new Date(`${bDate} ${bTime}`);
 
@@ -40,9 +38,41 @@ export default function DetailTable({ data, showDate }) {
   }
 
   return (
-    <div className="bg-white border rounded-2xl p-4 shadow-lg">
-      <div className="text-sm text-gray-600 mb-2">
-        Detaljer for <strong>{data.id}</strong>
+    <div className="bg-white border rounded-2xl p-4 shadow-lg relative">
+      <div className="flex justify-between items-center mb-2 text-sm text-gray-600">
+        <span>
+          Detaljer for <strong>{data.id}</strong>
+        </span>
+
+        {/* Tooltip trigger */}
+        <div className="relative group">
+          <button className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs hover:bg-gray-300">
+            ?
+          </button>
+
+          {/* Tooltip innhold */}
+          <div className="absolute z-10 hidden group-hover:block top-full right-0 mt-2 w-72 border border-gray-400 bg-white rounded-lg shadow-lg text-xs">
+            <table className="table-fixed w-full">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border border-gray-300 px-2 py-1 w-16">Kode</th>
+                  <th className="border border-gray-300 px-2 py-1">Beskrivelse</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td className="border px-2 py-1">A</td><td className="border px-2 py-1">Aktiv</td></tr>
+                <tr><td className="border px-2 py-1">Maj</td><td className="border px-2 py-1">Major fault</td></tr>
+                <tr><td className="border px-2 py-1">L</td><td className="border px-2 py-1">Latchet</td></tr>
+                <tr><td className="border px-2 py-1">B</td><td className="border px-2 py-1">Beam inhibit</td></tr>
+                <tr><td className="border px-2 py-1">M</td><td className="border px-2 py-1">Motion inhibit</td></tr>
+                <tr><td className="border px-2 py-1">K</td><td className="border px-2 py-1">Kill (stoppet behandling)</td></tr>
+                <tr><td className="border px-2 py-1">W</td><td className="border px-2 py-1">Warning</td></tr>
+                <tr><td className="border px-2 py-1">O</td><td className="border px-2 py-1">Override</td></tr>
+                <tr><td className="border px-2 py-1">P</td><td className="border px-2 py-1">Power/Protection inhibit</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <table className="w-full table-auto">
