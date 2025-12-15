@@ -185,13 +185,17 @@ export default function App() {
     <div className="app-container p-6 max-w-[1400px] mx-auto text-primary" style={{ backgroundColor: "var(--color-primary-dark)" }}>
       <header className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2 text-primary">
-          <a href="/">
+          <button
+            onClick={() => window.location.reload()}
+            className="focus:outline-none"
+          >
             <img
-              src="/interlock-web/bjorn.png"
+              src={import.meta.env.BASE_URL + "bjorn.png"}
               alt="favicon"
               className="w-48 h-20 rounded-2xl"
             />
-          </a>
+          </button>
+
         </h1>
 
 
