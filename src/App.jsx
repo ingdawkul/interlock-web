@@ -3,7 +3,6 @@ import FilePicker from './components/FilePicker'
 import StatsBar from './components/StatsBar'
 import InterlockTable from './components/InterlockTable'
 import DetailTable from './components/DetailTable'
-import ExportButtons from './components/ExportButtons'
 import RecentInterlocks from './components/RecentInterlocks'
 import { parseLogText } from './utils/parser'
 import "./theme.css";
@@ -186,12 +185,15 @@ export default function App() {
     <div className="app-container p-6 max-w-[1400px] mx-auto text-primary" style={{ backgroundColor: "var(--color-primary-dark)" }}>
       <header className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2 text-primary">
-          <img
-            src="/interlock-web/bjorn.png"
-            alt="favicon"
-            className="w-48 h-20 rounded-2xl"
-          />
+          <a href="/">
+            <img
+              src="/interlock-web/bjorn.png"
+              alt="favicon"
+              className="w-48 h-20 rounded-2xl"
+            />
+          </a>
         </h1>
+
 
         {/* Liten FilePicker og søk/eksport oppe i header-området */}
         <div className="flex items-center gap-4">
@@ -225,14 +227,11 @@ export default function App() {
         totalLines={totalLines}
         matches={matchLines}
         uniqueCount={Object.keys(results).length}
+        recentInterlocks={recentInterlocks}
       />
     </div>
   </div>
 )}
-
-      <div className="mb-6 max-h-64 overflow-y-auto panel">
-        <RecentInterlocks interlocks={recentInterlocks} />
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="panel rounded-lg p-2">

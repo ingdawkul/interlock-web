@@ -108,7 +108,7 @@ export default function FilePicker({ onFiles, height = "6vh" }) {
             ${
               isDragging
                 ? "border-blue-600 bg-blue-50 text-blue-700 shadow-md"
-                : "border-gray-400 bg-gray-50 text-gray-600 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                : "border-orange-500 bg-gray-50 text-gray-600 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700"
             }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
