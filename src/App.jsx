@@ -6,6 +6,8 @@ import DetailTable from './components/DetailTable'
 import RecentInterlocks from './components/RecentInterlocks'
 import { parseLogText } from './utils/parser'
 import "./theme.css";
+import DayTimeline from './components/DayTimeline'
+
 
 export default function App() {
   const [rawFiles, setRawFiles] = useState([])
@@ -15,7 +17,10 @@ export default function App() {
   const [selected, setSelected] = useState(null)
   const [query, setQuery] = useState('')
   const [recentInterlocks, setRecentInterlocks] = useState([])
-  const [fileMachines, setFileMachines] = useState({})   // ✅ NY
+  const [fileMachines, setFileMachines] = useState({})
+  const [fileDowntime, setFileDowntime] = useState({}) // 🆕 maskinstans
+  const [fileDowntimeRaw, setFileDowntimeRaw] = useState({}) // 🆕 rå intervaller
+
 
   const meta = { fileCount: rawFiles.length, totalLines, matchLines }
 
@@ -24,6 +29,25 @@ export default function App() {
     if (!match) return null
     const [_, y, m, d] = match
     return new Date(`${y}-${m}-${d}`)
+  }
+
+  function calcDowntimeStats(downtimeByDate) {
+    let count = 0
+    let minutes = 0
+
+    for (const intervals of Object.values(downtimeByDate || {})) {
+      for (const d of intervals) {
+        count++
+        const start = new Date(`1970-01-01T${d.start}`)
+        const end = new Date(`1970-01-01T${d.end}`)
+        minutes += Math.max(0, (end - start) / 1000 / 60)
+      }
+    }
+
+    return {
+      count,
+      minutes: Math.round(minutes)
+    }
   }
 
   // ---------------------------------------------------------
@@ -82,23 +106,26 @@ export default function App() {
           if (!da && !db) return 0
           if (!da) return 1
           if (!db) return -1
-          return da - db // Eldste først
+          return da - db
         })
 
-    setRawFiles(sortedNames)
+      setRawFiles(sortedNames)
 
       let combinedResults = {}
       let total = 0
       let matches = 0
       const newInterlocks = []
-      const machines = {}            // ✅ NY
+      const machines = {}
+      const downtimeStats = {}
+      const downtimeRaw = {}
 
       for (const f of arr) {
         const {
           results: r,
           totalLines: t,
           matchLines: m,
-          machineName               // ✅ NY
+          machineName,
+          downtimeByDate
         } = parseLogText(f.text)
 
         total += t
@@ -106,6 +133,11 @@ export default function App() {
 
         if (machineName) {
           machines[f.name] = machineName
+        }
+
+        if (downtimeByDate && Object.keys(downtimeByDate).length > 0) {
+          downtimeStats[f.name] = calcDowntimeStats(downtimeByDate)
+          downtimeRaw[f.name] = downtimeByDate   // ✅ KRITISK
         }
 
         for (const [id, data] of Object.entries(r)) {
@@ -151,7 +183,9 @@ export default function App() {
       })
 
       setResults(combinedResults)
-      setFileMachines(machines)     // ✅ NY
+      setFileMachines(machines)
+      setFileDowntime(downtimeStats)
+      setFileDowntimeRaw(downtimeRaw) // ✅ NY
       setTotalLines(total)
       setMatchLines(matches)
       setRecentInterlocks(sortedRecent)
@@ -237,18 +271,38 @@ export default function App() {
           />
         </div>
 
-        <ul className="list-disc list-inside text-sm mb-6">
+        <ul className="list-none text-sm mb-6 space-y-3">
           {rawFiles.map((file, i) => (
             <li key={i}>
-              {file}
-              {fileMachines[file] && (
-                <span className="ml-2 text-orange-500 italic font-bold">
-                  ➡️ {fileMachines[file]}
-                </span>
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-medium">{file}</span>
+
+                {fileMachines[file] && (
+                  <span className="text-orange-500 italic font-bold">
+                    ➡️ {fileMachines[file]}
+                  </span>
+                )}
+
+                {fileDowntime[file] && (
+                  <span className="text-red-600 font-semibold">
+                    | ⛔ {fileDowntime[file].count} stans ({fileDowntime[file].minutes} min)
+                  </span>
+                )}
+              </div>
+
+              {/* Timeline under filen */}
+              <div className="mt-1 ml-4">
+                <DayTimeline
+                  //date={extractDateFromFilename(file)?.toISOString().slice(0, 10)}
+                  downtime={
+                    Object.values(fileDowntimeRaw[file] || {}).flat()
+                  }
+                />
+              </div>
             </li>
           ))}
         </ul>
+
 
         <StatsBar
           totalLines={totalLines}

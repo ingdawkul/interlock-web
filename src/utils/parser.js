@@ -28,7 +28,6 @@ function mapSerialToMachine(sn) {
  * Krever eksplisitt SN / Serial / Hxxxxxx for å unngå falske treff.
  */
 function detectMachineFromLine(line) {
-  // SN / SN# / Serial Number
   const snMatch = line.match(
     /\b(?:SN|SN#|Serial(?:\s+Number)?)\s*[:=]?\s*(\d{4})\b/i
   );
@@ -36,7 +35,6 @@ function detectMachineFromLine(line) {
     return mapSerialToMachine(snMatch[1]);
   }
 
-  // Fabrikkformat: H + 6 siffer (bruk siste 4)
   const hMatch = line.match(/\bH(\d{6})\b/);
   if (hMatch) {
     const last4 = hMatch[1].slice(-4);
@@ -44,6 +42,16 @@ function detectMachineFromLine(line) {
   }
 
   return null;
+}
+
+// -----------------------------
+// Maskinstans-deteksjon (NYTT)
+// -----------------------------
+const DOWNTIME_GAP_MINUTES = 5;
+const spvFaultRegex = /\bSPV\b.*\bFault\b|\bFault\b.*\bSPV\b/i;
+
+function timeToDate(dateStr, timeStr) {
+  return new Date(`${dateStr}T${timeStr}`);
 }
 
 // ----------------------------------------------------
@@ -67,11 +75,23 @@ export function parseLogText(text, progressCallback) {
   // 🔑 Maskin detekteres kun én gang
   let machineName = null;
 
+  // -----------------------------
+  // Downtime state (NYTT)
+  // -----------------------------
+  const downtimeByDate = {};
+  let activeDowntime = null;
+  // {
+  //   date,
+  //   startTime,
+  //   lastSeenTime,
+  //   reason
+  // }
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     total++;
 
-    // Forsøk maskindeteksjon tidlig, men bare én gang
+    // Maskindeteksjon (én gang)
     if (!machineName) {
       const detected = detectMachineFromLine(line);
       if (detected) machineName = detected;
@@ -92,10 +112,59 @@ export function parseLogText(text, progressCallback) {
       currentDate = dateStr;
     } else {
       const m = lineRegex.exec(line);
-      if (!m) continue;
-      timeStr = m[1];
-      dateStr = currentDate;
+      if (m) {
+        timeStr = m[1];
+        dateStr = currentDate;
+      }
     }
+
+    // -----------------------------
+    // Maskinstans-deteksjon (NYTT)
+    // -----------------------------
+    if (dateStr && timeStr && spvFaultRegex.test(line)) {
+      const now = timeToDate(dateStr, timeStr);
+
+      if (!activeDowntime) {
+        activeDowntime = {
+          date: dateStr,
+          startTime: timeStr,
+          lastSeenTime: now,
+          reason: "SPV Fault"
+        };
+      } else {
+        activeDowntime.lastSeenTime = now;
+      }
+    } else if (activeDowntime && dateStr && timeStr) {
+      const now = timeToDate(dateStr, timeStr);
+      const diffMin =
+        (now - activeDowntime.lastSeenTime) / 1000 / 60;
+
+      if (diffMin >= DOWNTIME_GAP_MINUTES) {
+        if (!downtimeByDate[activeDowntime.date]) {
+          downtimeByDate[activeDowntime.date] = [];
+        }
+
+        downtimeByDate[activeDowntime.date].push({
+          start: activeDowntime.startTime,
+          end: activeDowntime.lastSeenTime
+            .toTimeString()
+            .slice(0, 8),
+          reason: activeDowntime.reason
+        });
+
+        activeDowntime = null;
+      }
+    }
+
+    // -----------------------------
+    // Eksisterende interlock-logikk
+    // -----------------------------
+    if (
+      !/(?:raise|ack)\s+(?:Warning|Fault)\s+(?:detected|removed)/i.test(line)
+    )
+      continue;
+
+    matches++;
 
     const fallbackMatch = lineRegex.exec(line);
     let interlockId = null;
@@ -143,10 +212,28 @@ export function parseLogText(text, progressCallback) {
     }
   }
 
+  // -----------------------------
+  // Flush åpen downtime (NYTT)
+  // -----------------------------
+  if (activeDowntime) {
+    if (!downtimeByDate[activeDowntime.date]) {
+      downtimeByDate[activeDowntime.date] = [];
+    }
+
+    downtimeByDate[activeDowntime.date].push({
+      start: activeDowntime.startTime,
+      end: activeDowntime.lastSeenTime
+        .toTimeString()
+        .slice(0, 8),
+      reason: activeDowntime.reason
+    });
+  }
+
   return {
     results,
     totalLines: total,
     matchLines: matches,
-    machineName 
+    machineName,
+    downtimeByDate // 👈 NYTT, uten breaking change
   };
 }
