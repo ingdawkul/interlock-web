@@ -19,6 +19,13 @@ export default function App() {
 
   const meta = { fileCount: rawFiles.length, totalLines, matchLines }
 
+  function extractDateFromFilename(name) {
+    const match = name.match(/^(\d{4})-(\d{2})-(\d{2})/)
+    if (!match) return null
+    const [_, y, m, d] = match
+    return new Date(`${y}-${m}-${d}`)
+  }
+
   // ---------------------------------------------------------
   // GLOBAL DROP-HÅNDTERING
   // ---------------------------------------------------------
@@ -67,7 +74,18 @@ export default function App() {
         })
       )
 
-      setRawFiles(arr.map(f => f.name))
+      const sortedNames = arr
+        .map(f => f.name)
+        .sort((a, b) => {
+          const da = extractDateFromFilename(a)
+          const db = extractDateFromFilename(b)
+          if (!da && !db) return 0
+          if (!da) return 1
+          if (!db) return -1
+          return da - db // Eldste først
+        })
+
+    setRawFiles(sortedNames)
 
       let combinedResults = {}
       let total = 0
