@@ -23,17 +23,11 @@ function mapSerialToMachine(sn) {
   return SERIAL_TO_MACHINE[sn] || null;
 }
 
-/**
- * Forsøker å detektere maskin fra EN linje.
- * Krever eksplisitt SN / Serial / Hxxxxxx for å unngå falske treff.
- */
 function detectMachineFromLine(line) {
   const snMatch = line.match(
     /\b(?:SN|SN#|Serial(?:\s+Number)?)\s*[:=]?\s*(\d{4})\b/i
   );
-  if (snMatch) {
-    return mapSerialToMachine(snMatch[1]);
-  }
+  if (snMatch) return mapSerialToMachine(snMatch[1]);
 
   const hMatch = line.match(/\bH(\d{6})\b/);
   if (hMatch) {
@@ -45,23 +39,29 @@ function detectMachineFromLine(line) {
 }
 
 // -----------------------------
-// Maskinstans-deteksjon (NYTT)
+// Maskinstans-deteksjon
 // -----------------------------
 const DOWNTIME_GAP_MINUTES = 5;
 const spvFaultRegex = /\bSPV\b.*\bFault\b|\bFault\b.*\bSPV\b/i;
+
+// -----------------------------
+// SystemMode-deteksjon
+// -----------------------------
+const systemModeRegex = /switching\s+to\s+(service|clinical)\s+mode/i;
 
 function timeToDate(dateStr, timeStr) {
   return new Date(`${dateStr}T${timeStr}`);
 }
 
+// ✅ Sørger for alltid "HH:MM"
+function formatTime(dateObj) {
+  return dateObj.toTimeString().slice(0, 5); // "HH:MM"
+}
+
 // ----------------------------------------------------
 
 export function parseLogText(text, progressCallback) {
-  // Tid/dato i starten: 2025-05-13 00:00:00
-  const startDateTimeRegex =
-    /^\s*(\d{4}-\d{2}-\d{2})[\t ]+(\d{2}:\d{2}:\d{2})(?=[\t ]|$)/;
-
-  // fallback regex: (HH:MM:SS)...(123456: description),
+  const startDateTimeRegex = /^\s*(\d{4}-\d{2}-\d{2})[\t ]+(\d{2}:\d{2}:\d{2})(?=[\t ]|$)/;
   const lineRegex = /(\d{2}:\d{2}:\d{2}).*?\((\d{6,7}):\s(.*?)\),/;
   const faultTypeRegex = /\b([A-Z]{3,4})\b\s+Fault/;
 
@@ -71,36 +71,29 @@ export function parseLogText(text, progressCallback) {
   const results = {};
 
   let currentDate = null;
-
-  // 🔑 Maskin detekteres kun én gang
   let machineName = null;
 
   // -----------------------------
-  // Downtime state (NYTT)
+  // Downtime state
   // -----------------------------
   const downtimeByDate = {};
   let activeDowntime = null;
-  // {
-  //   date,
-  //   startTime,
-  //   lastSeenTime,
-  //   reason
-  // }
+
+  // -----------------------------
+  // SystemMode state
+  // -----------------------------
+  const systemModesByDate = {};
+  let activeSystemMode = null;
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     total++;
 
-    // Maskindeteksjon (én gang)
+    // Maskindeteksjon
     if (!machineName) {
       const detected = detectMachineFromLine(line);
       if (detected) machineName = detected;
     }
-
-    // valider interessante linjer
-    if (!/(?:raise|ack)\s+(?:Warning|Fault)\s+(?:detected|removed)/i.test(line))
-      continue;
-    matches++;
 
     let dateStr = null;
     let timeStr = null;
@@ -118,26 +111,73 @@ export function parseLogText(text, progressCallback) {
       }
     }
 
+    if (!timeStr && currentDate) {
+      const timeMatch = line.match(/\b(\d{2}:\d{2}:\d{2})\b/);
+      if (timeMatch) {
+        timeStr = timeMatch[1];
+        dateStr = currentDate;
+      }
+    }
+
     // -----------------------------
-    // Maskinstans-deteksjon (NYTT)
+    // SystemMode parsing
+    // -----------------------------
+    if (dateStr && timeStr) {
+      const modeMatch = systemModeRegex.exec(line);
+      if (modeMatch) {
+        const mode = modeMatch[1].toUpperCase(); // SERVICE / CLINICAL
+        const now = timeToDate(dateStr, timeStr);
+
+        if (!activeSystemMode || activeSystemMode.mode !== mode) {
+          if (activeSystemMode) {
+            if (!systemModesByDate[activeSystemMode.date]) {
+              systemModesByDate[activeSystemMode.date] = [];
+            }
+
+            systemModesByDate[activeSystemMode.date].push({
+              start: formatTime(activeSystemMode.startTime),
+              end: formatTime(activeSystemMode.lastSeenTime),
+              mode: activeSystemMode.mode
+            });
+          }
+
+          activeSystemMode = {
+            date: dateStr,
+            startTime: now,
+            lastSeenTime: now,
+            mode
+          };
+        } else {
+          activeSystemMode.lastSeenTime = now;
+        }
+      }
+    }
+
+    // Kun linjer med raise/ack
+    if (!/(?:raise|ack)\s+(?:Warning|Fault)\s+(?:detected|removed)/i.test(line))
+      continue;
+
+    matches++;
+
+    // -----------------------------
+    // Downtime parsing
     // -----------------------------
     if (dateStr && timeStr && spvFaultRegex.test(line)) {
       const now = timeToDate(dateStr, timeStr);
-
       if (!activeDowntime) {
         activeDowntime = {
           date: dateStr,
           startTime: timeStr,
           lastSeenTime: now,
-          reason: "SPV Fault"
+          reason: "SPV Fault",
+          interlocks: []
         };
       } else {
         activeDowntime.lastSeenTime = now;
       }
     } else if (activeDowntime && dateStr && timeStr) {
       const now = timeToDate(dateStr, timeStr);
-      const diffMin =
-        (now - activeDowntime.lastSeenTime) / 1000 / 60;
+      const diffMin = (now - activeDowntime.lastSeenTime) / 1000 / 60;
 
       if (diffMin >= DOWNTIME_GAP_MINUTES) {
         if (!downtimeByDate[activeDowntime.date]) {
@@ -146,10 +186,9 @@ export function parseLogText(text, progressCallback) {
 
         downtimeByDate[activeDowntime.date].push({
           start: activeDowntime.startTime,
-          end: activeDowntime.lastSeenTime
-            .toTimeString()
-            .slice(0, 8),
-          reason: activeDowntime.reason
+          end: formatTime(activeDowntime.lastSeenTime),
+          reason: activeDowntime.reason,
+          interlocks: activeDowntime.interlocks
         });
 
         activeDowntime = null;
@@ -157,15 +196,8 @@ export function parseLogText(text, progressCallback) {
     }
 
     // -----------------------------
-    // Eksisterende interlock-logikk
+    // Interlock parsing
     // -----------------------------
-    if (
-      !/(?:raise|ack)\s+(?:Warning|Fault)\s+(?:detected|removed)/i.test(line)
-    )
-      continue;
-
-    matches++;
-
     const fallbackMatch = lineRegex.exec(line);
     let interlockId = null;
     let description = null;
@@ -181,6 +213,13 @@ export function parseLogText(text, progressCallback) {
 
     const typeMatch = faultTypeRegex.exec(line);
     const typeField = typeMatch ? typeMatch[1] : "N/A";
+
+    if (activeDowntime && interlockId && description) {
+      const label = `${interlockId} – ${description}`;
+      if (!activeDowntime.interlocks.includes(label)) {
+        activeDowntime.interlocks.push(label);
+      }
+    }
 
     if (!results[interlockId]) {
       results[interlockId] = { entries: [], total: 0 };
@@ -213,19 +252,29 @@ export function parseLogText(text, progressCallback) {
   }
 
   // -----------------------------
-  // Flush åpen downtime (NYTT)
+  // Flush åpen downtime
   // -----------------------------
   if (activeDowntime) {
-    if (!downtimeByDate[activeDowntime.date]) {
-      downtimeByDate[activeDowntime.date] = [];
-    }
+    if (!downtimeByDate[activeDowntime.date]) downtimeByDate[activeDowntime.date] = [];
 
     downtimeByDate[activeDowntime.date].push({
       start: activeDowntime.startTime,
-      end: activeDowntime.lastSeenTime
-        .toTimeString()
-        .slice(0, 8),
-      reason: activeDowntime.reason
+      end: formatTime(activeDowntime.lastSeenTime),
+      reason: activeDowntime.reason,
+      interlocks: activeDowntime.interlocks
+    });
+  }
+
+  // -----------------------------
+  // Flush åpen SystemMode
+  // -----------------------------
+  if (activeSystemMode) {
+    if (!systemModesByDate[activeSystemMode.date]) systemModesByDate[activeSystemMode.date] = [];
+
+    systemModesByDate[activeSystemMode.date].push({
+      start: formatTime(activeSystemMode.startTime),
+      end: formatTime(activeSystemMode.lastSeenTime),
+      mode: activeSystemMode.mode
     });
   }
 
@@ -234,6 +283,7 @@ export function parseLogText(text, progressCallback) {
     totalLines: total,
     matchLines: matches,
     machineName,
-    downtimeByDate // 👈 NYTT, uten breaking change
+    downtimeByDate,
+    systemModesByDate
   };
 }

@@ -1,13 +1,13 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react'
+import React, {useState, useMemo, useEffect, useCallback} from 'react'
+
 import FilePicker from './components/FilePicker'
 import StatsBar from './components/StatsBar'
 import InterlockTable from './components/InterlockTable'
 import DetailTable from './components/DetailTable'
 import RecentInterlocks from './components/RecentInterlocks'
-import { parseLogText } from './utils/parser'
-import "./theme.css";
 import DayTimeline from './components/DayTimeline'
-
+import { parseLogText } from './utils/parser'
+import './theme.css'
 
 export default function App() {
   const [rawFiles, setRawFiles] = useState([])
@@ -18,16 +18,24 @@ export default function App() {
   const [query, setQuery] = useState('')
   const [recentInterlocks, setRecentInterlocks] = useState([])
   const [fileMachines, setFileMachines] = useState({})
-  const [fileDowntime, setFileDowntime] = useState({}) // 🆕 maskinstans
-  const [fileDowntimeRaw, setFileDowntimeRaw] = useState({}) // 🆕 rå intervaller
+  const [fileDowntime, setFileDowntime] = useState({})
 
+  // 🆕 maskinstans
+  const [fileDowntimeRaw, setFileDowntimeRaw] = useState({})
+  // 🆕 SYSTEM MODES
+  const [fileSystemModesRaw, setFileSystemModesRaw] = useState({})
 
-  const meta = { fileCount: rawFiles.length, totalLines, matchLines }
+  const meta = {
+    fileCount: rawFiles.length,
+    totalLines,
+    matchLines
+  }
 
   function extractDateFromFilename(name) {
     const match = name.match(/^(\d{4})-(\d{2})-(\d{2})/)
     if (!match) return null
-    const [_, y, m, d] = match
+
+    const [, y, m, d] = match
     return new Date(`${y}-${m}-${d}`)
   }
 
@@ -56,7 +64,10 @@ export default function App() {
   const handleDroppedFiles = useCallback(async (fileList) => {
     const fileObjs = await Promise.all(
       Array.from(fileList).map(f =>
-        f.text().then(txt => ({ name: f.name, text: txt }))
+        f.text().then(txt => ({
+          name: f.name,
+          text: txt
+        }))
       )
     )
     handleFiles(fileObjs)
@@ -69,8 +80,7 @@ export default function App() {
     }
 
     const handleDrop = (e) => {
-      e.preventDefault()
-      e.stopPropagation()
+      preventDefaults(e)
       if (e.dataTransfer.files?.length > 0) {
         handleDroppedFiles(e.dataTransfer.files)
       }
@@ -114,10 +124,12 @@ export default function App() {
       let combinedResults = {}
       let total = 0
       let matches = 0
+
       const newInterlocks = []
       const machines = {}
       const downtimeStats = {}
       const downtimeRaw = {}
+      const systemModesRaw = {}
 
       for (const f of arr) {
         const {
@@ -125,7 +137,8 @@ export default function App() {
           totalLines: t,
           matchLines: m,
           machineName,
-          downtimeByDate
+          downtimeByDate,
+          systemModesByDate
         } = parseLogText(f.text)
 
         total += t
@@ -137,7 +150,11 @@ export default function App() {
 
         if (downtimeByDate && Object.keys(downtimeByDate).length > 0) {
           downtimeStats[f.name] = calcDowntimeStats(downtimeByDate)
-          downtimeRaw[f.name] = downtimeByDate   // ✅ KRITISK
+          downtimeRaw[f.name] = downtimeByDate
+        }
+
+        if (systemModesByDate && Object.keys(systemModesByDate).length > 0) {
+          systemModesRaw[f.name] = systemModesByDate
         }
 
         for (const [id, data] of Object.entries(r)) {
@@ -169,7 +186,9 @@ export default function App() {
               }
             }
 
-            if (!found) combinedResults[id].entries.push({ ...e })
+            if (!found) {
+              combinedResults[id].entries.push({ ...e })
+            }
           }
         }
       }
@@ -177,15 +196,18 @@ export default function App() {
       const sortedRecent = newInterlocks.sort((a, b) => {
         const lastA = a.times[a.times.length - 1]
         const lastB = b.times?.[b.times.length - 1]
+
         const dateA = lastA ? new Date(`1970-01-01T${lastA}`) : new Date(0)
         const dateB = lastB ? new Date(`1970-01-01T${lastB}`) : new Date(0)
+
         return dateB - dateA
       })
 
       setResults(combinedResults)
       setFileMachines(machines)
       setFileDowntime(downtimeStats)
-      setFileDowntimeRaw(downtimeRaw) // ✅ NY
+      setFileDowntimeRaw(downtimeRaw)
+      setFileSystemModesRaw(systemModesRaw)
       setTotalLines(total)
       setMatchLines(matches)
       setRecentInterlocks(sortedRecent)
@@ -193,7 +215,7 @@ export default function App() {
     }
 
     normalizeAndProcess().catch(err =>
-      console.error("Feil ved lesing av filer:", err)
+      console.error('Feil ved lesing av filer:', err)
     )
   }
 
@@ -201,7 +223,10 @@ export default function App() {
     if (!selected) return null
     const data = results[selected]
     if (!data) return null
-    return { id: selected, entries: data.entries }
+    return {
+      id: selected,
+      entries: data.entries
+    }
   }, [selected, results])
 
   const showDate = rawFiles.length > 1
@@ -213,7 +238,7 @@ export default function App() {
     return (
       <div
         className="app-container p-6 max-w-[1400px] mx-auto text-primary"
-        style={{ backgroundColor: "var(--color-primary-dark)" }}
+        style={{ backgroundColor: 'var(--color-primary-dark)' }}
       >
         <header className="flex items-center justify-between mb-6">
           <img
@@ -225,7 +250,7 @@ export default function App() {
 
         <main
           className="flex items-center justify-center"
-          style={{ minHeight: "calc(100vh - 96px)", padding: "1rem" }}
+          style={{ minHeight: 'calc(100vh - 96px)', padding: '1rem' }}
         >
           <div className="w-full h-full flex items-center justify-center">
             <div style={{ width: "100%" }}>
@@ -243,12 +268,12 @@ export default function App() {
   return (
     <div
       className="app-container p-6 max-w-[1400px] mx-auto text-primary"
-      style={{ backgroundColor: "var(--color-primary-dark)" }}
+      style={{ backgroundColor: 'var(--color-primary-dark)' }}
     >
       <header className="flex items-center justify-between mb-6">
         <button onClick={() => window.location.reload()}>
           <img
-            src={import.meta.env.BASE_URL + "bjorn.png"}
+            src={import.meta.env.BASE_URL + 'bjorn.png'}
             alt="favicon"
             className="w-48 h-20 rounded-2xl"
           />
@@ -259,7 +284,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* Valgte filer + stats */}
       <div className="bg-white panel mb-4 border rounded-2xl p-4">
         <div className="flex justify-between items-center mb-2">
           <p className="font-semibold">Valgte filer:</p>
@@ -279,30 +303,27 @@ export default function App() {
 
                 {fileMachines[file] && (
                   <span className="text-orange-500 italic font-bold">
-                    ➡️ {fileMachines[file]}
+                  | {fileMachines[file]}
                   </span>
                 )}
 
                 {fileDowntime[file] && (
                   <span className="text-red-600 font-semibold">
-                    | ⛔ {fileDowntime[file].count} stans ({fileDowntime[file].minutes} min)
+                    | {fileDowntime[file].count} stans (
+                    {fileDowntime[file].minutes} min)
                   </span>
                 )}
               </div>
 
-              {/* Timeline under filen */}
               <div className="mt-1 ml-4">
                 <DayTimeline
-                  //date={extractDateFromFilename(file)?.toISOString().slice(0, 10)}
-                  downtime={
-                    Object.values(fileDowntimeRaw[file] || {}).flat()
-                  }
+                  downtime={Object.values(fileDowntimeRaw[file] || {}).flat()}
+                  systemModes={Object.values(fileSystemModesRaw[file] || {}).flat()}
                 />
               </div>
             </li>
           ))}
         </ul>
-
 
         <StatsBar
           totalLines={totalLines}

@@ -1,132 +1,121 @@
-import React, { useMemo } from "react";
+import React from "react"
 
-/**
- * DayTimeline
- * Visualiserer ett døgn (00:00–24:00) horisontalt
- *
- * Props:
- * - date: string (YYYY-MM-DD)
- * - downtime: [{ start: "HH:MM:SS", end: "HH:MM:SS", reason }]
- * - service: [{ start: "HH:MM:SS", end: "HH:MM:SS", reason }]
- * - workHours: { start: "HH:MM", end: "HH:MM" } (default 06:30–21:00)
- * - height: number (px)
- */
+const WORK_START = "07:00"
+const WORK_END = "21:00"
+
+function timeToMinutes(t) {
+  const [h, m] = t.split(":").map(Number)
+  return h * 60 + m
+}
+
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v))
+}
+
 export default function DayTimeline({
   date,
-  downtime = [],
-  service = [],
-  workHours = { start: "06:30", end: "21:00" },
-  height = 18
+  downtime = [],        // [{ start, end, reason, interlocks }]
+  systemModes = []      // [{ start, end, mode }]
 }) {
-  const minutesInDay = 1440;
+  const DAY_MINUTES = 24 * 60
 
-  const toMinutes = (t) => {
-    const [h, m, s] = t.split(":").map(Number);
-    return h * 60 + m + (s ? s / 60 : 0);
-  };
+  const toPct = (min) =>
+    `${(clamp(min, 0, DAY_MINUTES) / DAY_MINUTES) * 100}%`
 
-  const durationMinutes = (start, end) => {
-    const s = toMinutes(start);
-    const e = toMinutes(end);
-    return Math.max(0, Math.round(e - s));
-  };
-
-  const segments = useMemo(() => {
-    const segs = [];
-
-    // Off-hours before work
-    segs.push({
-      start: 0,
-      end: toMinutes(workHours.start + ":00"),
-      type: "off"
-    });
-
-    // Work hours base
-    segs.push({
-      start: toMinutes(workHours.start + ":00"),
-      end: toMinutes(workHours.end + ":00"),
-      type: "work"
-    });
-
-    // Off-hours after work
-    segs.push({
-      start: toMinutes(workHours.end + ":00"),
-      end: minutesInDay,
-      type: "off"
-    });
-
-    // Service overlays (oransje)
-    for (const s of service) {
-      segs.push({
-        start: toMinutes(s.start),
-        end: toMinutes(s.end),
-        type: "service",
-        reason: s.reason
-      });
-    }
-
-    // Downtime overlays (rød)
-    for (const d of downtime) {
-      segs.push({
-        start: toMinutes(d.start),
-        end: toMinutes(d.end),
-        type: "fault",
-        reason: d.reason,
-        duration: durationMinutes(d.start, d.end)
-      });
-    }
-
-    return segs;
-  }, [downtime, service, workHours]);
-
-  const colorFor = (type) => {
-    switch (type) {
-      case "off":
-        return "bg-gray-300";
-      case "work":
-        return "bg-green-500";
-      case "fault":
-        return "bg-red-600";
-      case "service":
-        return "bg-orange-500";
-      default:
-        return "bg-gray-200";
-    }
-  };
+  const workStartMin = timeToMinutes(WORK_START)
+  const workEndMin = timeToMinutes(WORK_END)
 
   return (
-    <div className="flex items-center gap-2 w-full">
-      {date && (
-        <span className="text-xs text-gray-500 w-[90px] shrink-0">
-          {date}
-        </span>
-      )}
+    <div className="w-full relative select-none">
+      {/* === TICKS === */}
+      <div className="relative h-5 mb-1 text-[10px] text-gray-500">
+        {[0, 6, 12, 18, 24].map((h) => (
+          <div
+            key={h}
+            className="absolute -translate-x-1/2"
+            style={{ left: `${(h / 24) * 100}%` }}
+          >
+            {String(h).padStart(2, "0")}:00
+          </div>
+        ))}
+      </div>
 
-      <div
-        className="relative flex w-full rounded-full overflow-hidden"
-        style={{ height }}
-      >
-        {segments.map((s, i) => {
-          const left = (s.start / minutesInDay) * 100;
-          const width = ((s.end - s.start) / minutesInDay) * 100;
+      {/* === TIMELINE === */}
+      <div className="relative h-5 rounded-full overflow-hidden bg-gray-300">
 
-          const title =
-            s.type === "fault"
-              ? `${s.reason} – ${s.duration} min`
-              : s.type === "service"
-              ? s.reason || "Service"
-              : undefined;
+        {/* Off-hours */}
+        <div
+          className="absolute top-0 bottom-0 bg-gray-400"
+          style={{ left: 0, width: toPct(workStartMin) }}
+        />
+        <div
+          className="absolute top-0 bottom-0 bg-gray-400"
+          style={{
+            left: toPct(workEndMin),
+            width: toPct(DAY_MINUTES - workEndMin)
+          }}
+        />
+
+        {/* Default work hours */}
+        <div
+          className="absolute top-0 bottom-0 bg-green-500"
+          style={{
+            left: toPct(workStartMin),
+            width: toPct(workEndMin - workStartMin)
+          }}
+        />
+
+        {/* === SYSTEM MODES LAYER === */}
+        {systemModes.map((m, i) => {
+          const startMin = timeToMinutes(m.start)
+          const endMin = timeToMinutes(m.end)
+          const durationMin = Math.max(0, endMin - startMin)
+
+          const isService = m.mode === "SERVICE"
 
           return (
             <div
-              key={i}
-              title={title}
-              className={`absolute top-0 h-full ${colorFor(s.type)}`}
-              style={{ left: `${left}%`, width: `${width}%` }}
+              key={`mode-${i}`}
+              className={`absolute top-0 bottom-0 ${
+                isService ? "bg-orange-400" : "bg-blue-500"
+              }`}
+              style={{
+                left: toPct(startMin),
+                width: toPct(durationMin),
+                opacity: isService ? 0.9 : 0.6
+              }}
+              title={
+                isService
+                  ? `🛠 SERVICE ${m.start}–${m.end}`
+                  : `🏥 CLINICAL ${m.start}–${m.end}`
+              }
             />
-          );
+          )
+        })}
+
+        {/* === DOWNTIME LAYER (TOP) === */}
+        {downtime.map((d, i) => {
+          const startMin = timeToMinutes(d.start)
+          const endMin = timeToMinutes(d.end)
+          const durationMin = Math.max(0, endMin - startMin)
+
+          return (
+            <div
+              key={`down-${i}`}
+              className="absolute top-0 bottom-0 bg-red-600"
+              style={{
+                left: toPct(startMin),
+                width: toPct(durationMin)
+              }}
+              title={`⛔ ${d.start}–${d.end}
+Varighet: ${durationMin} min
+
+Interlocks:
+${(d.interlocks || []).join("\n")}`}
+            />
+          )
         })}
       </div>
     </div>
-  );
+  )
 }
