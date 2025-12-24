@@ -49,6 +49,13 @@ const spvFaultRegex = /\bSPV\b.*\bFault\b|\bFault\b.*\bSPV\b/i;
 // -----------------------------
 const systemModeRegex = /switching\s+to\s+([a-z]+)(?:\s+app)?\s+mode/i;
 
+// Modes som skal ignoreres fullstendig
+const IGNORED_MODES = new Set([
+  "UNKNOWN",
+  "SMC"
+]);
+
+
 
 function timeToDate(dateStr, timeStr) {
   return new Date(`${dateStr}T${timeStr}`);
@@ -121,20 +128,25 @@ export function parseLogText(text, progressCallback) {
     }
 
 // -----------------------------
-// SystemMode parsing (STATE-based, stop on ANY mode)
+// SystemMode parsing (STATE-based)
 // -----------------------------
 if (dateStr && timeStr) {
   const modeMatch = systemModeRegex.exec(line);
   if (modeMatch) {
-    const newMode = modeMatch[1].toUpperCase(); // SERVICE / CLINICAL / QA / TREAT / ...
+    const newMode = modeMatch[1].toUpperCase(); // SERVICE / CLINICAL / QA / TREAT / UNKNOWN / SMC
     const now = timeToDate(dateStr, timeStr);
 
-     // ✅ BESKYTTELSE: samme mode to ganger på rad
-    if (activeSystemMode && activeSystemMode.mode === newMode) {
-      continue; // ignorer redundant mode-switch
+    // ❌ 1. Ignorer UNKNOWN og SMC fullstendig
+    if (IGNORED_MODES.has(newMode)) {
+      continue;
     }
 
-    // Avslutt aktiv service/clinical ved enhver mode-switch
+    // ✅ 2. Beskyttelse mot samme mode to ganger på rad
+    if (activeSystemMode && activeSystemMode.mode === newMode) {
+      continue;
+    }
+
+    // 3. Avslutt aktiv service/clinical ved reell mode-switch
     if (activeSystemMode) {
       if (!systemModesByDate[activeSystemMode.date]) {
         systemModesByDate[activeSystemMode.date] = [];
@@ -149,7 +161,7 @@ if (dateStr && timeStr) {
       activeSystemMode = null;
     }
 
-    // Start ny periode kun hvis moden er interessant
+    // 4. Start ny periode kun hvis moden er interessant
     if (newMode === "SERVICE" || newMode === "CLINICAL") {
       activeSystemMode = {
         date: dateStr,
