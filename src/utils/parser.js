@@ -47,7 +47,8 @@ const spvFaultRegex = /\bSPV\b.*\bFault\b|\bFault\b.*\bSPV\b/i;
 // -----------------------------
 // SystemMode-deteksjon
 // -----------------------------
-const systemModeRegex = /switching\s+to\s+(service|clinical)\s+mode/i;
+const systemModeRegex = /switching\s+to\s+([a-z]+)(?:\s+app)?\s+mode/i;
+
 
 function timeToDate(dateStr, timeStr) {
   return new Date(`${dateStr}T${timeStr}`);
@@ -119,39 +120,47 @@ export function parseLogText(text, progressCallback) {
       }
     }
 
-    // -----------------------------
-    // SystemMode parsing
-    // -----------------------------
-    if (dateStr && timeStr) {
-      const modeMatch = systemModeRegex.exec(line);
-      if (modeMatch) {
-        const mode = modeMatch[1].toUpperCase(); // SERVICE / CLINICAL
-        const now = timeToDate(dateStr, timeStr);
+// -----------------------------
+// SystemMode parsing (STATE-based, stop on ANY mode)
+// -----------------------------
+if (dateStr && timeStr) {
+  const modeMatch = systemModeRegex.exec(line);
+  if (modeMatch) {
+    const newMode = modeMatch[1].toUpperCase(); // SERVICE / CLINICAL / QA / TREAT / ...
+    const now = timeToDate(dateStr, timeStr);
 
-        if (!activeSystemMode || activeSystemMode.mode !== mode) {
-          if (activeSystemMode) {
-            if (!systemModesByDate[activeSystemMode.date]) {
-              systemModesByDate[activeSystemMode.date] = [];
-            }
-
-            systemModesByDate[activeSystemMode.date].push({
-              start: formatTime(activeSystemMode.startTime),
-              end: formatTime(activeSystemMode.lastSeenTime),
-              mode: activeSystemMode.mode
-            });
-          }
-
-          activeSystemMode = {
-            date: dateStr,
-            startTime: now,
-            lastSeenTime: now,
-            mode
-          };
-        } else {
-          activeSystemMode.lastSeenTime = now;
-        }
-      }
+     // ✅ BESKYTTELSE: samme mode to ganger på rad
+    if (activeSystemMode && activeSystemMode.mode === newMode) {
+      continue; // ignorer redundant mode-switch
     }
+
+    // Avslutt aktiv service/clinical ved enhver mode-switch
+    if (activeSystemMode) {
+      if (!systemModesByDate[activeSystemMode.date]) {
+        systemModesByDate[activeSystemMode.date] = [];
+      }
+
+      systemModesByDate[activeSystemMode.date].push({
+        start: formatTime(activeSystemMode.startTime),
+        end: formatTime(now),
+        mode: activeSystemMode.mode
+      });
+
+      activeSystemMode = null;
+    }
+
+    // Start ny periode kun hvis moden er interessant
+    if (newMode === "SERVICE" || newMode === "CLINICAL") {
+      activeSystemMode = {
+        date: dateStr,
+        startTime: now,
+        mode: newMode
+      };
+    }
+  }
+}
+
+
 
     // Kun linjer med raise/ack
     if (!/(?:raise|ack)\s+(?:Warning|Fault)\s+(?:detected|removed)/i.test(line))
@@ -269,14 +278,17 @@ export function parseLogText(text, progressCallback) {
   // Flush åpen SystemMode
   // -----------------------------
   if (activeSystemMode) {
-    if (!systemModesByDate[activeSystemMode.date]) systemModesByDate[activeSystemMode.date] = [];
+    if (!systemModesByDate[activeSystemMode.date]) {
+      systemModesByDate[activeSystemMode.date] = [];
+    }
 
     systemModesByDate[activeSystemMode.date].push({
       start: formatTime(activeSystemMode.startTime),
-      end: formatTime(activeSystemMode.lastSeenTime),
+      end: "24:00",
       mode: activeSystemMode.mode
     });
   }
+
 
   return {
     results,
