@@ -55,6 +55,62 @@ const IGNORED_MODES = new Set([
   "SMC"
 ]);
 
+// -----------------------------
+// Trend / AVG-parameter parsing
+// -----------------------------
+
+const TREND_PARAMETERS = [
+  "NDCMotor::X1 primSecDevStats",
+  "NDCMotor::X2 primSecDevStats",
+  "NDCMotor::Y1 primSecDevStats",
+  "NDCMotor::Y2 primSecDevStats",
+
+  "NDCMotor::KVBladeX1 primSecDevStats",
+  "NDCMotor::KVBladeX2 primSecDevStats",
+  "NDCMotor::KVBladeY1 primSecDevStats",
+  "NDCMotor::KVBladeY2 primSecDevStats",
+
+  "NDCMotor::KVFilterFoil primSecDevStats",
+  "NDCMotor::KVFilterShape primSecDevStats",
+
+  "NDCMotor::PosTarget primSecDevStats",
+  "NDCMotor::PosRotation primSecDevStats",
+  "NDCMotor::PosIonChamber primSecDevStats",
+  "NDCMotor::PosY primSecDevStats",
+  "NDCMotor::PosEnergySwitch primDriftStats",
+
+  "MLCController::logStatistics MLCCarriage_BankA_primSecDevStats",
+  "MLCController::logStatistics MLCCarriage_BankB_primSecDevStats",
+
+  "STNSF6GasCtrl::logStatistics SF6GaswaveGuidePressureStatistics",
+
+  "BGMSubNodeCntrl::logStatistics EGN_boardTemperature",
+
+  "STNPwrHandlerBase::logStatistics PowerAPD_Temperature",
+  "STNPwrHandlerBase::logStatistics PowerSPD_Temperature",
+  "STNPwrHandlerBase::logStatistics PowerGPD_Temperature",
+
+  "STNPwrHandlerBase::logStatistics GPD_ACFanStatistics",
+  "STNPwrHandlerBase::logStatistics SPD_ACFanStatistics",
+
+  "STNCoolingCtrl::logStatistics CoolingbendMagFlowHighStatistics",
+  "STNCoolingCtrl::logStatistics CoolingcityWaterFlowHighStatistics",
+  "STNCoolingCtrl::logStatistics CoolingcityWaterTempStatistics",
+  "STNCoolingCtrl::logStatistics CoolingguideFlowFlowHighStatistics",
+  "STNCoolingCtrl::logStatistics CoolingklystronFlowHighStatistics",
+  "STNCoolingCtrl::logStatistics CoolingklystronSolenoidFlowHighStatistics",
+  "STNCoolingCtrl::logStatistics CoolingprimaryCollimatorFlowHighStatistics",
+  "STNCoolingCtrl::logStatistics CoolingpumpOutletTempStatistics",
+  "STNCoolingCtrl::logStatistics CoolingtankInputTempStatistics",
+  "STNCoolingCtrl::logStatistics CoolingtargetFlowHighStatistics",
+  "STNCoolingCtrl::logStatistics SlimcombineGuideSolenoidFlowHighStatistics"
+];
+
+
+
+
+// Full trendlinje-regex
+const AVG_REGEX = /\bavg\s*=\s*(-?\d+(?:\.\d+)?)/i;
 
 
 function timeToDate(dateStr, timeStr) {
@@ -74,9 +130,10 @@ export function parseLogText(text, progressCallback) {
   const faultTypeRegex = /\b([A-Z]{3,4})\b\s+Fault/;
 
   const lines = text.split(/\r?\n/);
+  const results = {};
+  const trendData = {};
   let total = 0;
   let matches = 0;
-  const results = {};
 
   let currentDate = null;
   let machineName = null;
@@ -92,6 +149,7 @@ export function parseLogText(text, progressCallback) {
   // -----------------------------
   const systemModesByDate = {};
   let activeSystemMode = null;
+
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -172,7 +230,33 @@ if (dateStr && timeStr) {
   }
 }
 
+// -----------------------------
+// Trend parsing (KUN kjente parametere)
+// -----------------------------
+if (dateStr && timeStr && line.includes("avg=")) {
+  for (const param of TREND_PARAMETERS) {
+    if (line.includes(param + ":")) {
+      const avgMatch = AVG_REGEX.exec(line);
+      if (!avgMatch) continue;
 
+      const avg = parseFloat(avgMatch[1]);
+      if (!trendData[param]) trendData[param] = [];
+
+      const timestamp = new Date(`${dateStr}T${timeStr}`);
+
+      trendData[param].push({
+        machine: machineName || "UNKNOWN",
+        date: dateStr,
+        time: timeStr,
+        timestamp,
+        value: avg
+      });
+
+      // Én parameter per linje → ferdig
+      break;
+    }
+  }
+}
 
     // Kun linjer med raise/ack
     if (!/(?:raise|ack)\s+(?:Warning|Fault)\s+(?:detected|removed)/i.test(line))
@@ -308,6 +392,7 @@ if (dateStr && timeStr) {
     matchLines: matches,
     machineName,
     downtimeByDate,
-    systemModesByDate
+    systemModesByDate,
+    trendData
   };
 }

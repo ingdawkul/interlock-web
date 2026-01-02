@@ -8,6 +8,8 @@ import RecentInterlocks from './components/RecentInterlocks'
 import DayTimeline from './components/DayTimeline'
 import { parseLogText } from './utils/parser'
 import './theme.css'
+import TrendViewer from './components/TrendViewer'
+
 
 export default function App() {
   const [rawFiles, setRawFiles] = useState([])
@@ -20,6 +22,8 @@ export default function App() {
   const [fileMachines, setFileMachines] = useState({})
   const [fileDowntime, setFileDowntime] = useState({})
 
+  // 🆕 Trend / AVG analyse
+  const [trendData, setTrendData] = useState({})
   // 🆕 maskinstans
   const [fileDowntimeRaw, setFileDowntimeRaw] = useState({})
   // 🆕 SYSTEM MODES
@@ -130,6 +134,8 @@ export default function App() {
       const downtimeStats = {}
       const downtimeRaw = {}
       const systemModesRaw = {}
+      const combinedTrendData = {}
+
 
       for (const f of arr) {
         const {
@@ -138,7 +144,8 @@ export default function App() {
           matchLines: m,
           machineName,
           downtimeByDate,
-          systemModesByDate
+          systemModesByDate,
+          trendData
         } = parseLogText(f.text)
 
         total += t
@@ -147,6 +154,16 @@ export default function App() {
         if (machineName) {
           machines[f.name] = machineName
         }
+
+        if (trendData) {
+          Object.entries(trendData).forEach(([param, points]) => {
+            if (!combinedTrendData[param]) {
+              combinedTrendData[param] = []
+            }
+            combinedTrendData[param].push(...points)
+          })
+        }
+
 
         if (downtimeByDate && Object.keys(downtimeByDate).length > 0) {
           downtimeStats[f.name] = calcDowntimeStats(downtimeByDate)
@@ -192,6 +209,14 @@ export default function App() {
           }
         }
       }
+
+      // sorter kronologisk (VELDIG viktig)
+      Object.values(combinedTrendData).forEach(arr =>
+        arr.sort((a, b) => a.timestamp - b.timestamp)
+      )
+
+
+      setTrendData(combinedTrendData);
 
       const sortedRecent = newInterlocks.sort((a, b) => {
         const lastA = a.times[a.times.length - 1]
@@ -330,6 +355,7 @@ export default function App() {
           matches={matchLines}
           uniqueCount={Object.keys(results).length}
           recentInterlocks={recentInterlocks}
+          trendData={trendData}
         />
       </div>
 
