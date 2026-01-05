@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from "react";
 
 export default function InterlockTable({ results, onSelect, query }) {
   const [sortKey, setSortKey] = useState("total");
   const [descending, setDescending] = useState(true);
+  const [selectedId, setSelectedId] = useState(null);
 
   const toggleSort = (key) => {
     if (sortKey === key) {
@@ -54,15 +55,18 @@ export default function InterlockTable({ results, onSelect, query }) {
     return descending ? <span>↓</span> : <span>↑</span>;
   };
 
+  const handleSelect = (id) => {
+    const newId = selectedId === id ? null : id;
+    setSelectedId(newId);
+    onSelect?.(newId);
+  };
+
   return (
     <div className="bg-white border rounded-2xl p-4 shadow-lg">
       <table className="w-full table-auto">
         <thead>
           <tr className="text-left">
-            <th
-              className={headerClass}
-              onClick={() => toggleSort("id")}
-            >
+            <th className={headerClass} onClick={() => toggleSort("id")}>
               <div className="flex items-center gap-1">
                 Interlock ID
                 <SortIcon active={sortKey === "id"} descending={descending} />
@@ -95,8 +99,12 @@ export default function InterlockTable({ results, onSelect, query }) {
           {rows.map((r) => (
             <tr
               key={r.id}
-              className="hover:bg-gray-100 cursor-pointer"
-              onClick={() => onSelect(r.id)}
+              onClick={() => handleSelect(r.id)}
+              className={`
+                cursor-pointer
+                hover:bg-gray-100
+                ${selectedId === r.id ? "bg-blue-100 font-medium" : ""}
+              `}
             >
               <td className="py-2">{r.id}</td>
               <td className="py-2 text-center">{r.type}</td>
@@ -106,10 +114,7 @@ export default function InterlockTable({ results, onSelect, query }) {
 
           {rows.length === 0 && (
             <tr>
-              <td
-                colSpan={3}
-                className="py-6 text-center text-gray-500"
-              >
+              <td colSpan={3} className="py-6 text-center text-gray-500">
                 Ingen resultater
               </td>
             </tr>

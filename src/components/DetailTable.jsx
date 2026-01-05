@@ -60,25 +60,25 @@ export default function DetailTable({ data, showDate }) {
                 </tr>
               </thead>
               <tbody>
-                <tr><td className="border px-2 py-1">A</td><td className="border px-2 py-1">Aktiv</td></tr>
+                <tr><td className="border px-2 py-1">A</td><td className="border px-2 py-1">Ack</td></tr>
                 <tr><td className="border px-2 py-1">Maj</td><td className="border px-2 py-1">Major fault</td></tr>
-                <tr><td className="border px-2 py-1">L</td><td className="border px-2 py-1">Latchet</td></tr>
+                <tr><td className="border px-2 py-1">L</td><td className="border px-2 py-1">Latched</td></tr>
                 <tr><td className="border px-2 py-1">B</td><td className="border px-2 py-1">Beam inhibit</td></tr>
                 <tr><td className="border px-2 py-1">M</td><td className="border px-2 py-1">Motion inhibit</td></tr>
                 <tr><td className="border px-2 py-1">K</td><td className="border px-2 py-1">Kill (stoppet behandling)</td></tr>
                 <tr><td className="border px-2 py-1">W</td><td className="border px-2 py-1">Warning</td></tr>
                 <tr><td className="border px-2 py-1">O</td><td className="border px-2 py-1">Override</td></tr>
-                <tr><td className="border px-2 py-1">P</td><td className="border px-2 py-1">Power/Protection inhibit</td></tr>
+                <tr><td className="border px-2 py-1">P</td><td className="border px-2 py-1">Power inhibit</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <table className="w-full table-auto">
+      <table className="w-full table-fixed">
         <thead>
           <tr>
-            <th className="text-left py-1">
+            <th className="text-left py-1 w-40">
               {showDate ? "Dato & Klokkeslett" : "Klokkeslett"}
             </th>
             <th className="text-center py-1">Beskrivelse</th>
