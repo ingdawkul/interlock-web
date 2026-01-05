@@ -45,3 +45,34 @@
   --border-soft: #333A47;
   --color-primary-dark: #d1d2d41a;
 }
+
+.threshold-error line {
+  animation: pulse-line 1s infinite;
+}
+
+@keyframes pulse-line {
+  0% {
+    stroke-opacity: 0.5;
+  }
+  50% {
+    stroke-opacity: 1;
+  }
+  100% {
+    stroke-opacity: 0.5;
+  }
+}
+.threshold-warning line {
+  animation: pulse-line-warning 1s infinite;
+}
+
+@keyframes pulse-line-warning {
+  0% {
+    stroke-opacity: 0.5;
+  }
+  50% {
+    stroke-opacity: 1;
+  }
+  100% {
+    stroke-opacity: 0.5;
+  }
+}

@@ -111,6 +111,8 @@ const TREND_PARAMETERS = [
 
 // Full trendlinje-regex
 const AVG_REGEX = /\bavg\s*=\s*(-?\d+(?:\.\d+)?)/i;
+const MIN_REGEX = /\bmin\s*=\s*(-?\d+(?:\.\d+)?)/i;
+const MAX_REGEX = /\bmax\s*=\s*(-?\d+(?:\.\d+)?)/i;
 
 
 function timeToDate(dateStr, timeStr) {
@@ -239,18 +241,28 @@ if (dateStr && timeStr && line.includes("avg=")) {
       const avgMatch = AVG_REGEX.exec(line);
       if (!avgMatch) continue;
 
-      const avg = parseFloat(avgMatch[1]);
-      if (!trendData[param]) trendData[param] = [];
+      const minMatch = MIN_REGEX.exec(line);
+      const maxMatch = MAX_REGEX.exec(line);
 
-      const timestamp = new Date(`${dateStr}T${timeStr}`);
+      const avg = parseFloat(avgMatch[1]);
+      const min = minMatch ? parseFloat(minMatch[1]) : null;
+      const max = maxMatch ? parseFloat(maxMatch[1]) : null;
+      const timestamp = new Date(`${dateStr}T${timeStr}`).getTime();
+
+      if (!trendData[param]) {
+        trendData[param] = [];
+      }
 
       trendData[param].push({
         machine: machineName || "UNKNOWN",
         date: dateStr,
         time: timeStr,
         timestamp,
-        value: avg
+        avg,
+        min,
+        max
       });
+
 
       // Én parameter per linje → ferdig
       break;
