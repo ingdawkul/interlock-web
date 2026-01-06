@@ -1,6 +1,6 @@
 import React from 'react'
 import { saveAs } from 'file-saver'
-import * as XLSX from 'xlsx'
+
 
 export function exportTxt(results, meta = {}) {
   let txt = `Analyserte filer: ${meta.fileCount || 0}\n`
@@ -14,22 +14,6 @@ export function exportTxt(results, meta = {}) {
   }
   const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' })
   saveAs(blob, 'unique_interlocks.txt')
-}
-
-export function exportXlsx(results, meta = {}) {
-  const rows = []
-  rows.push(['Interlock ID', 'Total', 'Type', 'Beskrivelse', 'Klokkeslett'])
-  for (const [id, data] of Object.entries(results)) {
-    for (const e of data.entries) {
-      rows.push([id, data.total, e.Type, e.description, e.Times.join(', ')])
-    }
-  }
-  const ws = XLSX.utils.aoa_to_sheet(rows)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, 'Interlocks')
-  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
-  const blob = new Blob([wbout], { type: 'application/octet-stream' })
-  saveAs(blob, 'unique_interlocks.xlsx')
 }
 
 export default function ExportButtons({ results, meta }) {

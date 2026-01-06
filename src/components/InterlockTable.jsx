@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useState, useMemo } from "react";
+import { interlockMap, severityColor } from "../utils/interlockLookup";
 
 export default function InterlockTable({ results, onSelect, query }) {
   const [sortKey, setSortKey] = useState("total");
@@ -15,14 +16,21 @@ export default function InterlockTable({ results, onSelect, query }) {
   };
 
   const rows = useMemo(() => {
-    const arr = Object.entries(results).map(([id, data]) => ({
-      id,
-      type: data.entries[0]?.Type || "N/A",
-      total: data.total,
-    }));
+    return Object.entries(results).map(([id, data]) => {
+      const meta = interlockMap[id];
+      return {
+        id,
+        type: data.entries[0]?.Type || "N/A",
+        total: data.total,
+        severity: meta?.severity
+      };
+    });
+  }, [results]);
 
+  const filteredRows = useMemo(() => {
     const q = (query || "").toLowerCase();
-    const filtered = arr.filter((r) => {
+
+    const filtered = rows.filter((r) => {
       if (!q) return true;
 
       if (r.id.toLowerCase().includes(q)) return true;
@@ -46,7 +54,8 @@ export default function InterlockTable({ results, onSelect, query }) {
     });
 
     return filtered;
-  }, [results, query, sortKey, descending]);
+  }, [rows, results, query, sortKey, descending]);
+
 
   const headerClass = "cursor-pointer select-none";
 
@@ -60,6 +69,7 @@ export default function InterlockTable({ results, onSelect, query }) {
     setSelectedId(newId);
     onSelect?.(newId);
   };
+
 
   return (
     <div className="bg-white border rounded-2xl p-4 shadow-lg">
@@ -95,31 +105,47 @@ export default function InterlockTable({ results, onSelect, query }) {
           </tr>
         </thead>
 
-        <tbody>
-          {rows.map((r) => (
-            <tr
-              key={r.id}
-              onClick={() => handleSelect(r.id)}
-              className={`
-                cursor-pointer
-                hover:bg-gray-100
-                ${selectedId === r.id ? "bg-blue-100 font-medium" : ""}
-              `}
-            >
-              <td className="py-2">{r.id}</td>
-              <td className="py-2 text-center">{r.type}</td>
-              <td className="py-2 text-center">{r.total}</td>
-            </tr>
-          ))}
+<tbody>
+  {filteredRows.map((r) => (
+    <tr
+      key={r.id}
+      onClick={() => handleSelect(r.id)}
+      className={`
+        cursor-pointer
+        hover:bg-gray-50
+        transition-colors duration-150
+        ${selectedId === r.id ? "bg-blue-100 font-medium" : ""}
+      `}
+    >
+      {/* Interlock ID med badge */}
+      <td className="py-2 px-4 flex items-center gap-2">
+        {r.id}
+        {r.severity && (
+          <span
+            className={`w-4 h-4 rounded-full ${severityColor[r.severity]}`}
+            title={r.severity}
+          />
+        )}
+      </td>
 
-          {rows.length === 0 && (
-            <tr>
-              <td colSpan={3} className="py-6 text-center text-gray-500">
-                Ingen resultater
-              </td>
-            </tr>
-          )}
-        </tbody>
+      {/* Node */}
+      <td className="py-2 px-4 text-center">{r.type}</td>
+
+      {/* Totalt antall */}
+      <td className="py-2 px-4 text-center">{r.total}</td>
+    </tr>
+  ))}
+
+  {rows.length === 0 && (
+    <tr>
+      <td colSpan={3} className="py-6 text-center text-gray-400">
+        Ingen resultater
+      </td>
+    </tr>
+  )}
+</tbody>
+
+
       </table>
     </div>
   );

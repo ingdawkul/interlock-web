@@ -1,0 +1,1150 @@
+[
+  {
+    "Interlock": "125000",
+    "FirstStep": "Power Cycle KVS",
+    "SecondStep": "Swap KVS node (ETX Computer)",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "136011",
+    "FirstStep": "Reboot Stand",
+    "SecondStep": "Check Plan Parameters and Tolerance tables",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "136017",
+    "FirstStep": "Go into Service and Clear error",
+    "SecondStep": "",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "200021",
+    "FirstStep": "Power Cycle BGM",
+    "SecondStep": "Flash BGM. Might need HASP with SD Card Node Carrier",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "201005",
+    "FirstStep": "Power Cycle BGM",
+    "SecondStep": "Swap BGM EGN if following errors follow 201005, 209121, 209141, 209221, 209241, 210022, 210023, 210024, 212025, 215051, 223030, 224030, 225030",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "208098",
+    "FirstStep": "Power Cycle BGM",
+    "SecondStep": "see error ID200021",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "209121",
+    "FirstStep": "Power Cycle BGM",
+    "SecondStep": "Swap BGM EGN if following errors follow 201005, 209121, 209141, 209221, 209241, 210022, 210023, 210024, 212025, 215051, 223030, 224030, 225030",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "209141",
+    "FirstStep": "Power Cycle BGM",
+    "SecondStep": "Swap BGM EGN if following errors follow 201005, 209121, 209141, 209221, 209241, 210022, 210023, 210024, 212025, 215051, 223030, 224030, 225030",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "209221",
+    "FirstStep": "Power Cycle BGM",
+    "SecondStep": "Swap BGM EGN if following errors follow 201005, 209121, 209141, 209221, 209241, 210022, 210023, 210024, 212025, 215051, 223030, 224030, 225030",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "209241",
+    "FirstStep": "Power Cycle BGM",
+    "SecondStep": "Swap BGM EGN if following errors follow 201005, 209121, 209141, 209221, 209241, 210022, 210023, 210024, 212025, 215051, 223030, 224030, 225030",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "210005",
+    "FirstStep": "Power Cycle BGM",
+    "SecondStep": "Swap BGM EGN if following errors follow 201005, 209121, 209141, 209221, 209241, 210022, 210023, 210024, 212025, 215051, 223030, 224030, 225030",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "210016",
+    "FirstStep": "Reboot BGM",
+    "SecondStep": "Initialise/Calibrate Terget. Not a quick fix, Potentially Grease Target Drive/Part Replacement. *see medusa",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "210022",
+    "FirstStep": "Power Cycle BGM",
+    "SecondStep": "Swap BGM EGN if following errors follow 201005, 209121, 209141, 209221, 209241, 210022, 210023, 210024, 212025, 215051, 223030, 224030, 225030",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "210023",
+    "FirstStep": "Power Cycle BGM",
+    "SecondStep": "Swap BGM EGN if following errors follow 201005, 209121, 209141, 209221, 209241, 210022, 210023, 210024, 212025, 215051, 223030, 224030, 225030",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "210024",
+    "FirstStep": "Power Cycle BGM",
+    "SecondStep": "Swap BGM EGN if following errors follow 201005, 209121, 209141, 209221, 209241, 210022, 210023, 210024, 212025, 215051, 223030, 224030, 225030",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "210025",
+    "FirstStep": "Power Cycle BGM",
+    "SecondStep": "Swap BGM EGN if following errors follow 201005, 209121, 209141, 209221, 209241, 210022, 210023, 210024, 212025, 215051, 223030, 224030, 225030",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "211016",
+    "FirstStep": "Clear error in service",
+    "SecondStep": "Reboot BGM. Swap MODULE, CONTROLLER, GUN DRIVER",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "212018",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Isolation of Ion Chamber Cable",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "212020",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam Tuning with scope and compare to referance values",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "212022",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam Tuning with scope and compare to referance values",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "212025",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam Tuning with scope and compare to referance values",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "212026",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam Tuning with scope and compare to referance values",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "212110",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam with scope, Check Target I cable/contact. Measure Volatages Thy and De-Q Thy",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "212111",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam with scope, Check Target I cable/contact. Measure Volatages Thy and De-Q Thy",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "212114",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam with scope, Check Target I cable/contact. Measure Volatages Thy and De-Q Thy",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "212115",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam with scope, Check Target I cable/contact. Measure Volatages Thy and De-Q Thy",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "212129",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam with scope, Check Target I cable/contact. Measure Volatages Thy and De-Q Thy",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "212229",
+    "FirstStep": "Info",
+    "SecondStep": "Sign Ion Chamber is ageing",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "213126",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam with scope, Measure Targer isolation from Ground over 100k Ohm",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "213128",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam with scope, Measure Targer isolation from Ground over 100k Ohm",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "213163",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam with scope, Measure Targer isolation from Ground over 100k Ohm",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "213165",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam with scope, Measure Targer isolation from Ground over 100k Ohm",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "213241",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Beam Ion Charge Baseline Capture follow Guidelines. (Beam Performance and Scanning 9,1)",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "216402",
+    "FirstStep": "Initalize/Power Cycle BGM",
+    "SecondStep": "Over 1A Re-grease the ion chamber leadscrew (remove old grease, clean and apply new Superlube)",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "216502",
+    "FirstStep": "Initalize/Power Cycle BGM",
+    "SecondStep": "Over 1A Re-grease the ion chamber leadscrew (remove old grease, clean and apply new Superlube)",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "216507",
+    "FirstStep": "Initalize/Power Cycle BGM",
+    "SecondStep": "Over 1A Re-grease the ion chamber leadscrew (remove old grease, clean and apply new Superlube)",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "221223",
+    "FirstStep": "Power Cycle BGM",
+    "SecondStep": "",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "221225",
+    "FirstStep": "Reset Trip on CB1",
+    "SecondStep": "Swap Main Thyratrom. Measure filament/check socket is not burned",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "221320",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Check Beam Tuning. Ion Chamber/Dosimetry Problem, Check beam with scope. Can be Hardware issue",
+    "Severity": "FOLLOW_UP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "222002",
+    "FirstStep": "Re-boot BGM EGN",
+    "SecondStep": "Flash BGM. Node and Controller. Swap BGM-EGN Card",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "222055",
+    "FirstStep": "Re-boot BGM EGN",
+    "SecondStep": "Swap HVPS GUN DRIVER",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "222069",
+    "FirstStep": "Re-boot BGM EGN",
+    "SecondStep": "Swap GRID HEATER GUN DRIVER",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "222090",
+    "FirstStep": "Re-boot BGM EGN",
+    "SecondStep": "Swap CONTROLLER, GUN DRIVER",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "223056",
+    "FirstStep": "Reset PWM board",
+    "SecondStep": "",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "224007",
+    "FirstStep": "Check Stand Fan",
+    "SecondStep": "",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "224030",
+    "FirstStep": "Re-boot BGM EGN",
+    "SecondStep": "Swap BGM EGN PCB",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "224050",
+    "FirstStep": "Check Modulator Door is closed",
+    "SecondStep": "Crowbar issue, Check screen switches > Thy PS Fuses/Check Crowbar is functional",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "224052",
+    "FirstStep": "None",
+    "SecondStep": "Potential Pulse Cable Issue *seek help",
+    "Severity": "CRITICAL",
+    "Notes": ""
+  },
+  {
+    "Interlock": "224053",
+    "FirstStep": "Reset Trip on CB1 > Check Keep Alive",
+    "SecondStep": "Swap Main Thyratrom. Measure filament/check socket is not burned",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "224088",
+    "FirstStep": "Reset Trip on CB1 > Check Keep Alive",
+    "SecondStep": "Swap Main Thyratrom. Measure filament/check socket is not burned",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "225035",
+    "FirstStep": "None",
+    "SecondStep": "BMAG I may need adjustment and output would need to be tested! Seek help. Needs Physics",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "225049",
+    "FirstStep": "None",
+    "SecondStep": "",
+    "Severity": "INFO",
+    "Notes": ""
+  },
+  {
+    "Interlock": "225057",
+    "FirstStep": "None",
+    "SecondStep": "",
+    "Severity": "INFO",
+    "Notes": ""
+  },
+  {
+    "Interlock": "225059",
+    "FirstStep": "None",
+    "SecondStep": "BMAG Window Out of Tolerance (Window needs to be adjusted. Must ensure Energy is correct before Adusting)",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "227094",
+    "FirstStep": "Aknowledge > Initialize",
+    "SecondStep": "Cal/Mechanical Issue, can be linked to Id227094, Id227210, Id227096 og Id227057 (Calibrate/Lubricate (seek help if unsure)",
+    "Severity": "INFO",
+    "Notes": ""
+  },
+  {
+    "Interlock": "227096",
+    "FirstStep": "Aknowledge > Initialize",
+    "SecondStep": "Cal/Mechanical Issue, can be linked to Id227094, Id227210, Id227096 og Id227057 (Calibrate/Lubricate (seek help if unsure)",
+    "Severity": "INFO",
+    "Notes": ""
+  },
+  {
+    "Interlock": "227098",
+    "FirstStep": "Target Issue, calibrate (+ check output)",
+    "SecondStep": "Check plugs, plug out-in, clean contacts, then calibrate (Check output)",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "227135",
+    "FirstStep": "Initalize/Calibrate",
+    "SecondStep": "Clean and inspect Carrolsel following PMI routine",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "227172",
+    "FirstStep": "Initalize, Ion Chamber",
+    "SecondStep": "Check plugs, plug out-in, clean contacts/ Calibrate",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "227179",
+    "FirstStep": "Initalize, Ion Chamber",
+    "SecondStep": "Check current is under 1A. Yes> Check plugs, plug out-in, clean contacts/ Calibrate. No>Lubricate drivescrew (superlube) as per PMI",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "227209",
+    "FirstStep": "Carrolsel Issue, Check plugs, plug out-in, clean contacts (+ Initalize or Calibrate )",
+    "SecondStep": "Possibly tighten plug (+ Initalize or Calibrate )",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "227210",
+    "FirstStep": "None",
+    "SecondStep": "Check plugs, plug out-in, clean contacts/ Calibrate. Possibly change BGM-Pos (+Initalize).  Id227221, Id227136, Id209121 Linked",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "300000",
+    "FirstStep": "Stand Safety Interlock. Usually in combination with another error. Reboot stand if its the only error",
+    "SecondStep": "",
+    "Severity": "INFO",
+    "Notes": ""
+  },
+  {
+    "Interlock": "300021",
+    "FirstStep": "Reboot Stand-node",
+    "SecondStep": "Flash/Replace SD  card on STAND-Node ",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "309131",
+    "FirstStep": "DKB Issue.  Re-boot Stand-nod or DKB. (Both 309131 & 313258)",
+    "SecondStep": "Change DKB",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "310101",
+    "FirstStep": "Fill With SF6 Gas",
+    "SecondStep": "Finn lekasjen. Pakning/Slange/sensor",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "310406",
+    "FirstStep": "City water flow too high. Check water flow in within range (Cooling Page) 3-5GPM",
+    "SecondStep": "Contact Teknisk if flow too high. Check Bypass valve.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "310409",
+    "FirstStep": "Klystron Flow Error. Achknowledge if possible",
+    "SecondStep": "Replace Impeller in Sensor or whole sensor. ",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "313011",
+    "FirstStep": "",
+    "SecondStep": "",
+    "Severity": "INFO",
+    "Notes": ""
+  },
+  {
+    "Interlock": "313250",
+    "FirstStep": "DKB error. Reboot DKB (bottom buttons). Power Cycle Stand.",
+    "SecondStep": "Comm Error? >Flash DKB without 24v power/Replace DKB.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "313253",
+    "FirstStep": "DKB MEB buttons. Press Harder",
+    "SecondStep": "Replace Elastomer / DKB",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "313258",
+    "FirstStep": "DKB Issue.  Re-boot Stand-nod or DKB. (Both 309131 & 313258)",
+    "SecondStep": "Change DKB",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "314037",
+    "FirstStep": "",
+    "SecondStep": "",
+    "Severity": "",
+    "Notes": ""
+  },
+  {
+    "Interlock": "314041",
+    "FirstStep": "",
+    "SecondStep": "",
+    "Severity": "",
+    "Notes": ""
+  },
+  {
+    "Interlock": "343001",
+    "FirstStep": "MEL. Override and Drive Couch/Gantry in Service. Clear Error",
+    "SecondStep": "Can be anything in the motion loop. Fault Find! Check for Bad contact in MEL chain W24/44/15",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "343003",
+    "FirstStep": "MEL. Override and Drive Couch/Gantry in Service. Clear Error",
+    "SecondStep": "Can be anything in the motion loop. Fault Find! Check for Bad contact in MEL chain W24/44/15",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "343005",
+    "FirstStep": "MEL. Override and Drive Couch/Gantry in Service. Clear Error",
+    "SecondStep": "Can be anything in the motion loop. Fault Find! Check for Bad contact in MEL chain W24/44/15",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "343010",
+    "FirstStep": "MEL. Override and Drive Couch/Gantry in Service. Clear Error",
+    "SecondStep": "Can be anything in the motion loop. Fault Find! Check for Bad contact in MEL chain W24/44/15",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "344005",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Motion Enable Issue. If Loop Volage 20v not 10v Swap U11 APD or whole APD (if chip on in stock)",
+    "Severity": "INFO",
+    "Notes": ""
+  },
+  {
+    "Interlock": "346105",
+    "FirstStep": "96v Lift out of Tolerance. Turn off Motor Power 30 seconds. (346105 & 346106)",
+    "SecondStep": "Reboot Stand. Error still there replace MPS or 96v PSU depending on which has failed.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "346106",
+    "FirstStep": "96v Lift out of Tolerance. Turn off Motor Power 30 seconds. (346105 & 346106)",
+    "SecondStep": "Reboot Stand. Error still there replace MPS or 96v PSU depending on which has failed.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "363002",
+    "FirstStep": "Laserguard Error. Power Cycle Stand + Check for Dust on Lens.",
+    "SecondStep": "Replace Laserguard",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "363004",
+    "FirstStep": "Laserguard Error. Power Cycle Stand + Check for Dust on Lens.",
+    "SecondStep": "Replace Laserguard",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "400021",
+    "FirstStep": "COL.SW.CTRL.FlasFileCRCCheckFailed.  Re-boot Collimator- Node.",
+    "SecondStep": "Flash SD  card on  Coll-Nod",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "401000",
+    "FirstStep": "",
+    "SecondStep": "",
+    "Severity": "",
+    "Notes": ""
+  },
+  {
+    "Interlock": "406100",
+    "FirstStep": "Collimator Issue. Change mezzanine card.",
+    "SecondStep": "",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "406107",
+    "FirstStep": "",
+    "SecondStep": "",
+    "Severity": "",
+    "Notes": ""
+  },
+  {
+    "Interlock": "413063",
+    "FirstStep": "X1 collision/Linked to 413000.Pri/sec missmatch. ",
+    "SecondStep": "Change collision sensor on X blender.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "413513",
+    "FirstStep": "Init KVS Collimator",
+    "SecondStep": "Power Cycle / Check Plugs on Collimator Controller PCB",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "415060",
+    "FirstStep": "Init KVS Collimator",
+    "SecondStep": "Power Cycle / Check Plugs on Collimator Controller PCB",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "416000",
+    "FirstStep": "Init KVS Collimator",
+    "SecondStep": "Power Cycle / Check for mechanical slack. Replace worn parts",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "416002",
+    "FirstStep": "Init KVS Collimator",
+    "SecondStep": "Power Cycle / Check Limit Switch",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "416513",
+    "FirstStep": "Init KVS Collimator",
+    "SecondStep": "Power Cycle",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "420127",
+    "FirstStep": "Initialize MLC > Cal MLC",
+    "SecondStep": "Calibrate MLC. Power Cycle MLC. Check MLC Plug Contacts. Swap Part (Motor/Leadscrew/tNut/Softpot/PCB)",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "420128",
+    "FirstStep": "Initialize MLC > Cal MLC",
+    "SecondStep": "Calibrate MLC. Power Cycle MLC. Check MLC Plug Contacts. Swap Part (Motor/Leadscrew/tNut/Softpot/PCB)",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "420129",
+    "FirstStep": "",
+    "SecondStep": "",
+    "Severity": "INFO",
+    "Notes": ""
+  },
+  {
+    "Interlock": "420205",
+    "FirstStep": "Initialize MLC > Cal MLC",
+    "SecondStep": "Replace Encoder Strip > Sec feedback card",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "420207",
+    "FirstStep": "Initialize MLC > Cal MLC",
+    "SecondStep": "Start with MLC Motor",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "420213",
+    "FirstStep": "Initialize MLC > Cal MLC",
+    "SecondStep": "Start with MLC Motor",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "420219",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Change MLC motor",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "420220",
+    "FirstStep": "Aknowledge",
+    "SecondStep": "Change MLC motor",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "420223",
+    "FirstStep": "Init MLC. Change MLC motor.",
+    "SecondStep": "Change drive-screw/nut",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "420224",
+    "FirstStep": "Reboot MLC power + Col-Node.",
+    "SecondStep": "Change MLC motor/Change softpot",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "420297",
+    "FirstStep": "Initialize MLC > Cal MLC",
+    "SecondStep": "Change softpot",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "420403",
+    "FirstStep": "Collimator Issue. Linked to 420603",
+    "SecondStep": "Power Cycle Collimator",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "420404",
+    "FirstStep": "",
+    "SecondStep": "",
+    "Severity": "",
+    "Notes": ""
+  },
+  {
+    "Interlock": "500021",
+    "FirstStep": "Reboot XI Node",
+    "SecondStep": "Hard reset XI. CBCT PC may need reboot after. Remove power from XI for 1min.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "508098",
+    "FirstStep": "Reboot XI Node",
+    "SecondStep": "Hard reset XI. CBCT PC may need reboot after. Remove power from XI for 1min.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "510102",
+    "FirstStep": "Reboot CBCT PC",
+    "SecondStep": "Re-boot XI node and CBCT PC.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "511905",
+    "FirstStep": "Reboot CBCT PC",
+    "SecondStep": "Re-boot XI node and CBCT PC.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "512130",
+    "FirstStep": "Reboot KV Generator",
+    "SecondStep": "Possible component failure in Generator",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "512142",
+    "FirstStep": "",
+    "SecondStep": "",
+    "Severity": "",
+    "Notes": ""
+  },
+  {
+    "Interlock": "512701",
+    "FirstStep": "Reboot XI (512701, 513915, 513922, 513924)",
+    "SecondStep": "Swap Cable W12",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "513001",
+    "FirstStep": "",
+    "SecondStep": "",
+    "Severity": "",
+    "Notes": ""
+  },
+  {
+    "Interlock": "513701",
+    "FirstStep": "Reboot XI Node (513701, 513702, 513703, 513707, 513708) ",
+    "SecondStep": "Check Optical Link. Possible DMI or OVM Module Error",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "513702",
+    "FirstStep": "Reboot XI Node (513701, 513702, 513703, 513707, 513708) ",
+    "SecondStep": "Check Optical Link. Possible DMI or OVM Module Error",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "513703",
+    "FirstStep": "Reboot XI Node (513701, 513702, 513703, 513707, 513708) ",
+    "SecondStep": "Check Optical Link. Possible DMI or OVM Module Error",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "513707",
+    "FirstStep": "Reboot XI Node (513701, 513702, 513703, 513707, 513708) ",
+    "SecondStep": "Check Optical Link. Possible DMI or OVM Module Error",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "513708",
+    "FirstStep": "Reboot XI Node (513701, 513702, 513703, 513707, 513708) ",
+    "SecondStep": "Check Optical Link. Possible DMI or OVM Module Error",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "513915",
+    "FirstStep": "Reboot XI (512701, 513915, 513922, 513924)",
+    "SecondStep": "Swap Cable W12",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "513922",
+    "FirstStep": "Reboot XI (512701, 513915, 513922, 513924)",
+    "SecondStep": "Swap Cable W12",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "513924",
+    "FirstStep": "Reboot XI (512701, 513915, 513922, 513924)",
+    "SecondStep": "Swap Cable W12",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "513925",
+    "FirstStep": "Reboot XI",
+    "SecondStep": "Switch needs to be Remote (Short Stand) > Replace Basket PCB",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "513928",
+    "FirstStep": "Reboot XI",
+    "SecondStep": "Check Plugs and Temp Sensor Heat exchanger",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "514001",
+    "FirstStep": "",
+    "SecondStep": "",
+    "Severity": "",
+    "Notes": ""
+  },
+  {
+    "Interlock": "514407",
+    "FirstStep": " DXI module -KV. Linked to (513925, 514408). Reboot XI.",
+    "SecondStep": "Change  DXI-modul (KV).",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "514408",
+    "FirstStep": "DXI module-KV. Linked to Id 514407. Reboot XI.",
+    "SecondStep": "Change  DXI-modul (KV).",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "612017",
+    "FirstStep": "96V below range. Linked to 612017, 912017, 1012017.  Motor fuse CB6 off and on.",
+    "SecondStep": "Change MPS card.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "701015",
+    "FirstStep": "",
+    "SecondStep": "",
+    "Severity": "",
+    "Notes": ""
+  },
+  {
+    "Interlock": "706100",
+    "FirstStep": "CCHU Id706102 og 706103 HSSBLink2",
+    "SecondStep": "Change E-chain.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "706102",
+    "FirstStep": "Power cycle CCHU.",
+    "SecondStep": "Change  W46 (fra STN-patch til CCHL-patch) / Change E-chain.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "706103",
+    "FirstStep": "Power Cycle Couch Upper",
+    "SecondStep": "Change  W46 (fra STN-patch til CCHL-patch) / Change E-chain.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "710007",
+    "FirstStep": "Power Cycle Couch Upper",
+    "SecondStep": "Re-flash Part in Control System Installer. ",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "710008",
+    "FirstStep": "Power Cycle Couch Upper",
+    "SecondStep": "Re-flash Part in Control System Installer. ",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "718516",
+    "FirstStep": "Move Couch Long ",
+    "SecondStep": "Power Cycle Couch Upper/Replace Energy Chain",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "718517",
+    "FirstStep": "Move Couch Long ",
+    "SecondStep": "Power Cycle Couch Upper/Replace Energy Chain",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "718518",
+    "FirstStep": "Move Couch Long ",
+    "SecondStep": "Power Cycle Couch Upper/Replace Energy Chain",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "718519",
+    "FirstStep": "Move Couch Long ",
+    "SecondStep": "Power Cycle Couch Upper/Replace Energy Chain",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "719907",
+    "FirstStep": "",
+    "SecondStep": "",
+    "Severity": "",
+    "Notes": ""
+  },
+  {
+    "Interlock": "721307",
+    "FirstStep": "",
+    "SecondStep": "",
+    "Severity": "",
+    "Notes": ""
+  },
+  {
+    "Interlock": "800021",
+    "FirstStep": "Reboot CCHL node",
+    "SecondStep": "Flash CCHL Node / Swap Node carrier",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "810018",
+    "FirstStep": "Reboot CCHL node",
+    "SecondStep": "",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "811202",
+    "FirstStep": "",
+    "SecondStep": "Byttet motor (SS50491005 EC-MAX40 MOTOR GEARBOX RESOLVER BRAKE AS kr. 97806.87)",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "813012",
+    "FirstStep": "Reboot STN",
+    "SecondStep": "Av-på CB6 i MOD, reboot STN",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "813026",
+    "FirstStep": "Reset CB",
+    "SecondStep": "Bytte SPD PCB",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "813035",
+    "FirstStep": "Reset CB",
+    "SecondStep": "Bytte SPD PCB",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "813044",
+    "FirstStep": "Reboot CCHL",
+    "SecondStep": "Flash CCHL Node",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "813045",
+    "FirstStep": "Reboot STN",
+    "SecondStep": "Byttet MPS pcb",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "906002",
+    "FirstStep": "Power cycle CCHL node",
+    "SecondStep": "",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "906003",
+    "FirstStep": "Power cycle CCHL node",
+    "SecondStep": "",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "912017",
+    "FirstStep": "Motor fuse CB6 off and on 30 seconds.",
+    "SecondStep": "Change MPS card.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "1000021",
+    "FirstStep": "Reboot KVs node",
+    "SecondStep": "Flashe Node / Swap Node Carrier",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "1010006",
+    "FirstStep": "Reboot KVs node",
+    "SecondStep": "Flashe Node",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "1011202",
+    "FirstStep": "Clearet Warning",
+    "SecondStep": "",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "1011400",
+    "FirstStep": "Initialize KVS",
+    "SecondStep": "Renset plugger",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "1011453",
+    "FirstStep": "Initialize KVS",
+    "SecondStep": "Smurt skruen",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "1011700",
+    "FirstStep": "Y2 pri/sec, Init KVS Collimator",
+    "SecondStep": "",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "1011900",
+    "FirstStep": "KVS Shaper Pri/Sec. Initialize",
+    "SecondStep": "Power Cycle, Check contacts. Calibrate",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "1012017",
+    "FirstStep": "Motor fuse CB6 off and on 30 seconds.",
+    "SecondStep": "Change MPS card.",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "1012021",
+    "FirstStep": "15v too Low. Power Cycle / Initialize ",
+    "SecondStep": "",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "1013204",
+    "FirstStep": "KVS wrist too low. Initialize / Power Cycle",
+    "SecondStep": "",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "1013402",
+    "FirstStep": "KVS. SIgnal from Resolver too low. Initialize / Power Cycle",
+    "SecondStep": "Check Plugs on Collimator Controller PCB / Replace Collimator Controller PCB",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "1013439",
+    "FirstStep": "Initialize KVS",
+    "SecondStep": "Lubricate KVS collimator following PMI Routine",
+    "Severity": "STOP",
+    "Notes": ""
+  },
+  {
+    "Interlock": "1013704",
+    "FirstStep": "KVS. SIgnal from Resolver too low. Initialize / Power Cycle",
+    "SecondStep": "Check Plugs on Collimator Controller PCB / Replace Collimator Controller PCB",
+    "Severity": "STOP",
+    "Notes": ""
+  }
+]

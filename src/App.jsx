@@ -9,6 +9,11 @@ import DayTimeline from './components/DayTimeline'
 import { parseLogText } from './utils/parser'
 import './theme.css'
 import TrendViewer from './components/TrendViewer'
+import InterlockSearch from "./components/InterlockSearch";
+import InterlockActionsModal from "./components/InterlockActionsModal";
+import { interlockMap } from './utils/interlockLookup';
+
+
 
 
 export default function App() {
@@ -21,6 +26,8 @@ export default function App() {
   const [recentInterlocks, setRecentInterlocks] = useState([])
   const [fileMachines, setFileMachines] = useState({})
   const [fileDowntime, setFileDowntime] = useState({})
+  const [searchInterlock, setSearchInterlock] = useState(null);
+
 
   // 🆕 Trend / AVG analyse
   const [trendData, setTrendData] = useState({})
@@ -259,33 +266,59 @@ export default function App() {
   // ---------------------------------------------------------
   // STOR FilePicker (ingen filer)
   // ---------------------------------------------------------
-  if (!rawFiles || rawFiles.length === 0) {
-    return (
-      <div
-        className="app-container p-6 max-w-[1400px] mx-auto text-primary"
-        style={{ backgroundColor: 'var(--color-primary-dark)' }}
-      >
-        <header className="flex items-center justify-between mb-6">
-          <img
-            src="/interlock-web/bjorn.png"
-            alt="favicon"
-            className="w-48 h-20 rounded-2xl"
-          />
-        </header>
+if (rawFiles.length === 0) {
+  return (
+    <div
+      className="app-container min-h-screen flex flex-col bg-primary-dark text-primary"
+      style={{ backgroundColor: 'var(--color-primary-dark)' }}
+    >
+      {/* Header */}
+      <header className="flex items-center justify-between p-6 max-w-[1400px] mx-auto w-full">
+        <img
+          src="/interlock-web/bjorn.png"
+          alt="favicon"
+          className="w-48 h-20 rounded-2xl"
+        />
+      </header>
 
-        <main
-          className="flex items-center justify-center"
-          style={{ minHeight: 'calc(100vh - 96px)', padding: '1rem' }}
-        >
-          <div className="w-full h-full flex items-center justify-center">
-            <div style={{ width: "100%" }}>
-              <FilePicker onFiles={handleDroppedFiles} height="50vh" />
-            </div>
+      {/* Main content */}
+      <main className="flex flex-col items-center justify-center flex-1 w-full px-4">
+        {/* Søkerfelt */}
+        <div className="w-full max-w-xl mx-auto mb-6">
+        <InterlockSearch
+          onSelect={(idOrObj) => {
+            // Hvis onSelect sender hele objektet:
+            if (idOrObj && typeof idOrObj === "object") {
+              setSearchInterlock(idOrObj);
+            } else if (idOrObj && interlockMap[idOrObj]) {
+              setSearchInterlock(interlockMap[idOrObj]);
+            } else {
+              console.warn("Fant ikke interlock for id:", idOrObj);
+            }
+          }}
+        />
+
+        </div>
+
+        {/* Filvelger */}
+        <div className="w-full px-4">
+          <div className="w-full max-w-6xl mx-auto">
+            <FilePicker onFiles={handleDroppedFiles} height="50vh" />
           </div>
-        </main>
-      </div>
-    )
-  }
+        </div>
+      </main>
+
+      {/* Modal for interlock */}
+      {searchInterlock && (
+        <InterlockActionsModal
+          interlock={searchInterlock}
+          onClose={() => setSearchInterlock(null)}
+        />
+      )}
+    </div>
+  );
+}
+
 
   // ---------------------------------------------------------
   // NORMAL APP
@@ -372,6 +405,12 @@ export default function App() {
           <DetailTable data={selectedData} showDate={showDate} />
         </div>
       </div>
+        {searchInterlock && (
+        <InterlockActionsModal
+          interlock={searchInterlock}
+          onClose={() => setSearchInterlock(null)}
+        />
+      )}
     </div>
   )
 }

@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from "react";
+import InterlockActionsModal from "./InterlockActionsModal";
+import { interlockMap } from "../utils/interlockLookup";
 
 export default function DetailTable({ data, showDate }) {
   if (!data) {
@@ -8,6 +10,12 @@ export default function DetailTable({ data, showDate }) {
       </div>
     );
   }
+  
+  const [showActions, setShowActions] = useState(false);
+
+  const interlockInfo = data?.id
+    ? interlockMap[data.id]
+    : null;
 
   const formatDateTime = (date, time) => {
     if (!showDate || !date) return time;
@@ -40,9 +48,21 @@ export default function DetailTable({ data, showDate }) {
   return (
     <div className="bg-white border rounded-2xl p-4 shadow-lg relative">
       <div className="flex justify-between items-center mb-2 text-sm text-gray-600">
-        <span>
-          Detaljer for <strong>{data.id}</strong>
-        </span>
+        <div className="flex items-center gap-2">
+          <span>
+            Detaljer for <strong>{data.id}</strong>
+          </span>
+
+          {interlockInfo && (
+            <button
+              onClick={() => setShowActions(true)}
+              className="bg-blue-500 text-white px-3 py-1 rounded-md text-xs hover:bg-blue-600"
+            >
+              Vis tiltak
+            </button>
+          )}
+        </div>
+
 
         {/* Tooltip trigger */}
         <div className="relative group">
@@ -105,6 +125,12 @@ export default function DetailTable({ data, showDate }) {
           ))}
         </tbody>
       </table>
+      {showActions && interlockInfo && (
+      <InterlockActionsModal
+        interlock={interlockInfo}
+        onClose={() => setShowActions(false)}
+      />
+    )}
     </div>
   );
 }
