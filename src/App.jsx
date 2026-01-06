@@ -9,11 +9,9 @@ import DayTimeline from './components/DayTimeline'
 import { parseLogText } from './utils/parser'
 import './theme.css'
 import TrendViewer from './components/TrendViewer'
-import InterlockSearch from "./components/InterlockSearch";
-import InterlockActionsModal from "./components/InterlockActionsModal";
-import { interlockMap } from './utils/interlockLookup';
-
-
+import InterlockSearch from "./components/InterlockSearch"
+import InterlockActionsModal from "./components/InterlockActionsModal"
+import { interlockMap } from './utils/interlockLookup'
 
 
 export default function App() {
