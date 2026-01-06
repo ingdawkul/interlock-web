@@ -119,13 +119,18 @@ export default function InterlockTable({ results, onSelect, query }) {
     >
       {/* Interlock ID med badge */}
       <td className="py-2 px-4 flex items-center gap-2">
+        <div
+          className={`
+            flex items-center gap-2
+            rounded-lg
+            px-2 py-1
+            ${selectedId === r.id ? "bg-blue-100 font-medium" : ""}
+            ${r.severity ? severityColor[r.severity] + " bg-opacity-60" : ""}
+            transition-colors duration-200
+          `}
+        >
         {r.id}
-        {r.severity && (
-          <span
-            className={`w-4 h-4 rounded-full ${severityColor[r.severity]}`}
-            title={r.severity}
-          />
-        )}
+        </div>
       </td>
 
       {/* Node */}
