@@ -107,8 +107,8 @@ export default function FilePicker({ onFiles, height = "6vh" }) {
           className={`border-4 border-dashed w-full rounded-2xl p-4 text-center flex-1 transition-colors cursor-pointer
             ${
               isDragging
-                ? "border-blue-600 bg-blue-50 text-blue-700 shadow-md"
-                : "border-orange-500 bg-gray-50 text-gray-600 hover:border-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                ? "border-orange-500 bg-blue-50 text-blue-800 shadow-md"
+                : "border-blue-500 bg-gray-50 text-gray-600 hover:border-orange-600 hover:bg-blue-50 hover:text-blue-700"
             }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -116,7 +116,8 @@ export default function FilePicker({ onFiles, height = "6vh" }) {
           style={{ minHeight: height }}
           onClick={() => document.getElementById("fileInput").click()}
         >
-          {isDragging ? "Slipp filene her!" : "Trykk her for å velge filer eller slipp dem her"}
+          {isDragging 
+          ? "Slipp filene her!" : "Trykk her for å velge filer eller slipp dem her"}
         </div>
 
         <input

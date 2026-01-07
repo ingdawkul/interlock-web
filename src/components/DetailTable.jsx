@@ -49,14 +49,15 @@ export default function DetailTable({ data, showDate }) {
     <div className="bg-white border rounded-2xl p-4 shadow-lg relative">
       <div className="flex justify-between items-center mb-2 text-sm text-gray-600">
         <div className="flex items-center gap-2">
-          <span>
-            Detaljer for <strong>{data.id}</strong>
-          </span>
-
+          <div class="text-xl leading-tight font-semibold">
+            <span>
+              Detaljer for <strong class="font-bold text-blue-500">{data.id}</strong>
+            </span>
+          </div>
           {interlockInfo && (
             <button
               onClick={() => setShowActions(true)}
-              className="bg-blue-500 text-white px-3 py-1 rounded-md text-xs hover:bg-blue-600"
+              className="px-3 py-1 rounded-2xl border bg-orange-500 text-white text-xs hover:bg-blue-600"
             >
               Vis tiltak
             </button>
