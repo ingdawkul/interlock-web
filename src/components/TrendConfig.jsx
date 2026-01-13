@@ -7,16 +7,16 @@ export const TREND_CONFIG = {
   "NDCMotor::Y1 primSecDevStats": { min: -0.5, max: 0.5, warningMin: -0.25, warningMax: 0.25 },
   "NDCMotor::Y2 primSecDevStats": { min: -0.5, max: 0.5, warningMin: -0.25, warningMax: 0.25 },
 
-  "NDCMotor::KVBladeX1 primSecDevStats": { min: -0.03, max: 0.03, warningMin: -0.03, warningMax: 0.03 },    
-  "NDCMotor::KVBladeX2 primSecDevStats": { min: -0.03, max: 0.03, warningMin: -0.03, warningMax: 0.03 },
-  "NDCMotor::KVBladeY1 primSecDevStats": { min: -0.03, max: 0.03, warningMin: -0.03, warningMax: 0.03 },
-  "NDCMotor::KVBladeY2 primSecDevStats": { min: -0.03, max: 0.03, warningMin: -0.03, warningMax: 0.03 },
+  "NDCMotor::KVBladeX1 primSecDevStats": { min: -0.05, max: 0.05, warningMin: -0.04, warningMax: 0.04 },    
+  "NDCMotor::KVBladeX2 primSecDevStats": { min: -0.05, max: 0.05, warningMin: -0.04, warningMax: 0.04 },
+  "NDCMotor::KVBladeY1 primSecDevStats": { min: -0.05, max: 0.05, warningMin: -0.04, warningMax: 0.04 },
+  "NDCMotor::KVBladeY2 primSecDevStats": { min: -0.05, max: 0.05, warningMin: -0.04, warningMax: 0.04 },
 
-  "NDCMotor::KVFilterFoil primSecDevStats": { max: 0.07, warningMax: 0.05 },
-  "NDCMotor::KVFilterShape primSecDevStats": { max: 0.07, warningMax: 0.05 },
+  "NDCMotor::KVFilterFoil primSecDevStats": { max: 0.1, warningMax: 0.08 },
+  "NDCMotor::KVFilterShape primSecDevStats": { max: 0.1, warningMax: 0.08 },
 
   "NDCMotor::PosTarget primSecDevStats": { min: -0.5, max: 0.5, warningMin: -0.3, warningMax: 0.3 },
-  "NDCMotor::PosRotation primSecDevStats": { min: -0.75, max: 0.075, warningMin: -0.05, warningMax: 0.05 },
+  "NDCMotor::PosRotation primSecDevStats": { min: -0.75, max: 0.75, warningMin: -0.5, warningMax: 0.5 },
   "NDCMotor::PosIonChamber primSecDevStats": { min: -0.25, max: 0.25, warningMin: -0.2, warningMax: 0.2 },
   "NDCMotor::PosY primSecDevStats": { min: -0.5, max: 0.5, warningMin: -0.25, warningMax: 0.25 },
   "NDCMotor::PosEnergySwitch primDriftStats": { min: -0.005, max: 0.005, warningMin: -0.003, warningMax: 0.003 },
@@ -42,9 +42,9 @@ export const TREND_CONFIG = {
   "STNSF6GasCtrl::logStatistics SF6GaswaveGuidePressureStatistics": {
     unit: "bar",
     min: 27,
-    max: 33.0,
+    max: 35.0,
     warningMin: 28.5,
-    warningMax: 32.5
+    warningMax: 33
   },
 
   /* =========================
