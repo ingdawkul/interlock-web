@@ -1,7 +1,7 @@
 import React from "react"
 
 const WORK_START = "07:00"
-const WORK_END = "21:00"
+const WORK_END = "15:00"
 
 function timeToMinutes(t) {
   const [h, m] = t.split(":").map(Number)

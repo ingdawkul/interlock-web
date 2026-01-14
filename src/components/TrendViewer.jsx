@@ -33,15 +33,23 @@ export default function TrendViewer({ trendData }) {
   const filteredParams = parameters.filter(p => p.toLowerCase().includes(query.toLowerCase()));
   const data = selected ? trendData[selected] : [];
 
-  const dataByMachine = useMemo(() => {
+  const indexedData = useMemo(() => {
+  return data
+    .slice()
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    .map((d, i) => ({ ...d, index: i }));
+}, [data]);
+
+
+    const dataByMachine = useMemo(() => {
     if (!selected) return {};
-    return data.reduce((acc, point) => {
-      const m = point.machine || "UNKNOWN";
-      if (!acc[m]) acc[m] = [];
-      acc[m].push(point);
-      return acc;
+    return indexedData.reduce((acc, point) => {
+        const m = point.machine || "UNKNOWN";
+        if (!acc[m]) acc[m] = [];
+        acc[m].push(point);
+        return acc;
     }, {});
-  }, [data, selected]);
+    }, [indexedData, selected]);
 
   const CustomTooltip = ({ active, payload }) => {
     if (!active || !payload?.length) return null;
@@ -67,21 +75,35 @@ export default function TrendViewer({ trendData }) {
     );
   };
 
-  function getThresholdState(paramName, data = []) {
-    const cfg = TREND_CONFIG[paramName];
-    if (!cfg || data.length === 0) return "OK";
+function getThresholdState(paramName, data = []) {
+  const cfg = TREND_CONFIG[paramName];
+  if (!cfg || data.length === 0) return "OK";
 
-    const last = data[data.length - 1];
-    const { avg, min, max } = last;
+  let hasWarning = false;
 
-    if ((cfg.max !== undefined && avg > cfg.max) || (cfg.min !== undefined && avg < cfg.min))
+  for (const point of data) {
+    const avg = point.avg;
+    if (avg == null) continue;
+
+    // HARD limits → ERROR
+    if (
+      (cfg.max !== undefined && avg > cfg.max) ||
+      (cfg.min !== undefined && avg < cfg.min)
+    ) {
       return "ERROR";
+    }
 
-    if ((cfg.warningMax !== undefined && max > cfg.warningMax) || (cfg.warningMin !== undefined && min < cfg.warningMin))
-      return "WARNING";
-
-    return "OK";
+    // SOFT limits → WARNING
+    if (
+      (cfg.warningMax !== undefined && avg > cfg.warningMax) ||
+      (cfg.warningMin !== undefined && avg < cfg.warningMin)
+    ) {
+      hasWarning = true;
+    }
   }
+
+  return hasWarning ? "WARNING" : "OK";
+}
 
   function getYDomain() {
     if (!selected || !data.length) return ["auto", "auto"];
@@ -243,32 +265,27 @@ export default function TrendViewer({ trendData }) {
                     </>
                   )}
 
-                  <XAxis
+                    <XAxis
                     dataKey={xAxisMode === "time" ? "timestamp" : "index"}
                     type="number"
                     scale={xAxisMode === "time" ? "time" : "linear"}
                     domain={["auto", "auto"]}
                     tickFormatter={v => {
-                      if (xAxisMode === "time") {
-                        const first = data[0]?.timestamp;
-                        const last = data[data.length - 1]?.timestamp;
-                        const span = new Date(last) - new Date(first);
+                        if (xAxisMode === "time") {
                         const d = new Date(v);
+                        return d.toLocaleDateString("no-NO");
+                        }
 
-                        if (span < 24 * 60 * 60 * 1000)
-                          return d.toLocaleTimeString("no-NO", { hour: "2-digit", minute: "2-digit" });
-                        if (span <= 3 * 24 * 60 * 60 * 1000)
-                          return d.toLocaleDateString("no-NO", { day: "2-digit", month: "2-digit" }) +
-                                 " " + d.toLocaleTimeString("no-NO", { hour: "2-digit", minute: "2-digit" });
-                        return d.toLocaleDateString("no-NO", { day: "2-digit", month: "2-digit" });
-                      } else {
-                        const firstMachine = Object.values(dataByMachine)[0];
-                        if (!firstMachine) return "";
-                        const d = new Date(firstMachine[v]?.timestamp);
-                        return d.toLocaleDateString("no-NO", { day: "2-digit", month: "2-digit" });
-                      }
+                        // ✅ ÉN sannhet: indexedData
+                        const ts = indexedData[v]?.timestamp;
+                        if (!ts) return "";
+                        return new Date(ts).toLocaleDateString("no-NO", {
+                        day: "2-digit",
+                        month: "2-digit"
+                        });
                     }}
-                  />
+                    />
+
 
                   <YAxis
                     domain={getYDomain()}
@@ -280,7 +297,7 @@ export default function TrendViewer({ trendData }) {
                   <Legend />
 
                   {Object.entries(dataByMachine).map(([machine, points], idx) => {
-                    const pointsWithIndex = xAxisMode === "index" ? points.map((p, i) => ({ ...p, index: i })) : points;
+                    const pointsWithIndex = points;
                     const color = MACHINE_COLORS[idx % MACHINE_COLORS.length];
 
                     return (

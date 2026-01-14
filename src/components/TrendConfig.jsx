@@ -151,12 +151,14 @@ export const TREND_CONFIG = {
   "STNCoolingCtrl::logStatistics CoolingpumpOutletTempStatistics": {
     unit: "°C",
     max: 45,
+    min: 30,
     warningMax: 42,
     warningMin: 38
   },
   "STNCoolingCtrl::logStatistics CoolingtankInputTempStatistics": {
     unit: "°C",
     max: 48,
+    min: 30,
     warningMax: 45,
     warningMin: 38
   },
