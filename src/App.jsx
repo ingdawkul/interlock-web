@@ -343,12 +343,6 @@ if (rawFiles.length === 0) {
       <div className="bg-white panel mb-4 border rounded-2xl p-4">
         <div className="flex justify-between items-center mb-2">
           <p className="font-semibold">Valgte filer:</p>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Søk (ID, Type eller Beskrivelse)"
-            className="px-4 py-3 rounded-2xl min-w-96 border border-gray-400"
-          />
         </div>
 
         <ul className="list-none text-sm mb-6 space-y-3">
@@ -381,13 +375,25 @@ if (rawFiles.length === 0) {
           ))}
         </ul>
 
-        <StatsBar
-          totalLines={totalLines}
-          matches={matchLines}
-          uniqueCount={Object.keys(results).length}
-          recentInterlocks={recentInterlocks}
-          trendData={trendData}
-        />
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+          {/* Venstre: StatsBar */}
+          <StatsBar
+            totalLines={totalLines}
+            matches={matchLines}
+            uniqueCount={Object.keys(results).length}
+            recentInterlocks={recentInterlocks}
+            trendData={trendData}
+          />
+
+          {/* Høyre: Søkefelt */}
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Søk (ID, Type eller Beskrivelse)"
+            className="px-4 py-3 rounded-2xl w-80 border border-gray-400"
+          />
+        </div>
+
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
