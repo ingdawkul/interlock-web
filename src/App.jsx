@@ -25,6 +25,8 @@ export default function App() {
   const [fileMachines, setFileMachines] = useState({})
   const [fileDowntime, setFileDowntime] = useState({})
   const [searchInterlock, setSearchInterlock] = useState(null);
+  const [showTimeline, setShowTimeline] = useState(false)
+
 
 
   // 🆕 Trend / AVG analyse
@@ -357,20 +359,22 @@ if (rawFiles.length === 0) {
                   </span>
                 )}
 
-                {fileDowntime[file] && (
-                  <span className="text-red-600 font-semibold">
-                    | {fileDowntime[file].count} stans (
-                    {fileDowntime[file].minutes} min)
-                  </span>
-                )}
+              {showTimeline && fileDowntime[file] && (
+                <span className="text-red-600 font-semibold">
+                  | {fileDowntime[file].count} stans (
+                  {fileDowntime[file].minutes} min)
+                </span>
+              )}
               </div>
 
-              <div className="mt-1 ml-4">
-                <DayTimeline
-                  downtime={Object.values(fileDowntimeRaw[file] || {}).flat()}
-                  systemModes={Object.values(fileSystemModesRaw[file] || {}).flat()}
-                />
-              </div>
+              {showTimeline && (
+                <div className="mt-1 ml-4">
+                  <DayTimeline
+                    downtime={Object.values(fileDowntimeRaw[file] || {}).flat()}
+                    systemModes={Object.values(fileSystemModesRaw[file] || {}).flat()}
+                  />
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -383,7 +387,10 @@ if (rawFiles.length === 0) {
             uniqueCount={Object.keys(results).length}
             recentInterlocks={recentInterlocks}
             trendData={trendData}
+            showTimeline={showTimeline}
+            setShowTimeline={setShowTimeline}
           />
+
 
           {/* Høyre: Søkefelt */}
           <input

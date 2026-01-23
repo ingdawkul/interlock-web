@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import RecentInterlocks from './RecentInterlocks';
 import TrendViewer from './TrendViewer';
 
-export default function StatsBar({ totalLines, matches, uniqueCount, recentInterlocks, trendData }) {
+export default function StatsBar({ totalLines, matches, uniqueCount, recentInterlocks, trendData, showTimeline, setShowTimeline }) {
   const [showInterlocks, setShowInterlocks] = useState(false)
-const [showTrends, setShowTrends] = useState(false)
+  const [showTrends, setShowTrends] = useState(false)
 
   return (
     <div className="flex flex-wrap gap-4 items-center text-sm">
@@ -87,6 +87,13 @@ const [showTrends, setShowTrends] = useState(false)
           </div>
         </div>
       )}
+      <button
+      className="px-4 py-3 rounded-2xl border border-orange-500 bg-gray-100 hover:bg-gray-200"
+      onClick={() => setShowTimeline(prev => !prev)}
+    >
+      {showTimeline ? 'Skjul dagstidslinje' : 'Vis dagstidslinje'}
+    </button>
+
     </div>
   );
 }
