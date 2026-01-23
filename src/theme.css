@@ -76,3 +76,50 @@
     stroke-opacity: 0.5;
   }
 }
+/* YTRE – kun animasjon */
+.timeline-wrapper {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-6px);
+  margin-left: 1rem;
+  margin-top: 0.25rem;
+
+  transition:
+    max-height 0.35s ease,
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.timeline-wrapper.open {
+  max-height: 500px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* INDRE – må få lov til å tegne uten klipping */
+.timeline-inner {
+  overflow: visible;
+}
+
+html {
+  overflow-y: scroll;
+}
+/* Chrome / Edge */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.25);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.3) transparent;
+}

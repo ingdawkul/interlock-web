@@ -350,34 +350,41 @@ if (rawFiles.length === 0) {
         <ul className="list-none text-sm mb-6 space-y-3">
           {rawFiles.map((file, i) => (
             <li key={i}>
+              {/* ÉN LINJE: fil + maskin + stans */}
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-medium">{file}</span>
 
                 {fileMachines[file] && (
                   <span className="text-orange-500 italic font-bold">
-                  | {fileMachines[file]}
+                    | {fileMachines[file]}
                   </span>
                 )}
 
-              {showTimeline && fileDowntime[file] && (
-                <span className="text-red-600 font-semibold">
-                  | {fileDowntime[file].count} stans (
-                  {fileDowntime[file].minutes} min)
-                </span>
-              )}
+                {showTimeline && fileDowntime[file] && (
+                  <span className="text-red-600 font-semibold">
+                    | {fileDowntime[file].count} stans (
+                    {fileDowntime[file].minutes} min)
+                  </span>
+                )}
               </div>
 
-              {showTimeline && (
-                <div className="mt-1 ml-4">
+              <div
+                className={`timeline-wrapper ${
+                  showTimeline ? 'open' : 'closed'
+                }`}
+              >
+                <div className="timeline-inner">
                   <DayTimeline
                     downtime={Object.values(fileDowntimeRaw[file] || {}).flat()}
                     systemModes={Object.values(fileSystemModesRaw[file] || {}).flat()}
                   />
                 </div>
-              )}
+              </div>
             </li>
           ))}
         </ul>
+
+
 
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           {/* Venstre: StatsBar */}

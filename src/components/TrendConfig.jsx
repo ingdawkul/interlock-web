@@ -176,4 +176,5 @@ export const TREND_CONFIG = {
     warningMin: 3.2,
     warningMax: 3.8
   }
+  
 };
