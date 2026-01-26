@@ -28,7 +28,6 @@ export default function App() {
   const [showTimeline, setShowTimeline] = useState(false)
 
 
-
   // 🆕 Trend / AVG analyse
   const [trendData, setTrendData] = useState({})
   // 🆕 maskinstans
@@ -68,6 +67,13 @@ export default function App() {
       minutes: Math.round(minutes)
     }
   }
+
+  const uniqueMachineNames = useMemo(() => {
+  return new Set(Object.values(fileMachines)).size
+}, [fileMachines])
+
+const showMachineName = uniqueMachineNames > 1
+
 
   // ---------------------------------------------------------
   // GLOBAL DROP-HÅNDTERING
@@ -211,7 +217,10 @@ export default function App() {
             }
 
             if (!found) {
-              combinedResults[id].entries.push({ ...e })
+              combinedResults[id].entries.push({
+                ...e,
+                file: f.name
+              })
             }
           }
         }
@@ -420,7 +429,7 @@ if (rawFiles.length === 0) {
         </div>
 
         <div className="panel rounded-lg p-2">
-          <DetailTable data={selectedData} showDate={showDate} />
+          <DetailTable data={selectedData} showDate={showDate} fileMachines={fileMachines} showMachineName={showMachineName} />
         </div>
       </div>
         {searchInterlock && (

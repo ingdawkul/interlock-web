@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import InterlockActionsModal from "./InterlockActionsModal";
 import { interlockMap } from "../utils/interlockLookup";
 
-export default function DetailTable({ data, showDate }) {
+export default function DetailTable({ data, showDate, fileMachines, showMachineName }) {
   if (!data) {
     return (
       <div className="text-sm text-gray-500">
@@ -17,14 +17,22 @@ export default function DetailTable({ data, showDate }) {
     ? interlockMap[data.id]
     : null;
 
-  const formatDateTime = (date, time) => {
-    if (!showDate || !date) return time;
+  const formatDateTime = (date, time, machine) => {
+    if (!showDate || !date) return time
+
     return (
-      <>
+      <div>
         <span className="font-bold">{date}</span> {time}
-      </>
-    );
-  };
+
+        {showMachineName && machine && (
+          <div className="text-xs text-gray-400">
+            {machine}
+          </div>
+        )}
+      </div>
+    )
+  }
+
 
   // ---------------------------
   // 🔥 SORTERING NÅR DATO SKAL VISES
@@ -110,12 +118,14 @@ export default function DetailTable({ data, showDate }) {
             <tr key={idx} className="align-top">
               <td className="py-2">
                 {e.Times.map((time, i) => {
-                  const date = e.Dates?.[i];
+                  const date = e.Dates?.[i]
+                  const machine = fileMachines?.[e.file]
+
                   return (
                     <div key={i}>
-                      {formatDateTime(date, time)}
+                      {formatDateTime(date, time, machine)}
                     </div>
-                  );
+                  )
                 })}
               </td>
               <td className="py-2">
