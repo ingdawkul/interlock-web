@@ -98,7 +98,7 @@ export default function InterlockTable({ results, onSelect, query }) {
               onClick={() => toggleSort("total")}
             >
               <div className="flex items-center justify-center gap-1">
-                Totalt antall
+                Total amount 
                 <SortIcon active={sortKey === "total"} descending={descending} />
               </div>
             </th>
@@ -144,7 +144,7 @@ export default function InterlockTable({ results, onSelect, query }) {
   {rows.length === 0 && (
     <tr>
       <td colSpan={3} className="py-6 text-center text-gray-400">
-        Ingen resultater
+        No interlocks found
       </td>
     </tr>
   )}

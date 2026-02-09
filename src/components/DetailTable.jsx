@@ -6,7 +6,7 @@ export default function DetailTable({ data, showDate, fileMachines, showMachineN
   if (!data) {
     return (
       <div className="text-sm text-gray-500">
-        Velg en Interlock ID for detaljer
+        Click on an interlock to show details 
       </div>
     );
   }
@@ -59,7 +59,7 @@ export default function DetailTable({ data, showDate, fileMachines, showMachineN
         <div className="flex items-center gap-2">
           <div class="text-xl leading-tight font-semibold">
             <span>
-              Detaljer for <strong class="font-bold text-blue-500">{data.id}</strong>
+              Details for <strong class="font-bold text-blue-500">{data.id}</strong>
             </span>
           </div>
           {interlockInfo && (
@@ -67,7 +67,7 @@ export default function DetailTable({ data, showDate, fileMachines, showMachineN
               onClick={() => setShowActions(true)}
               className="px-3 py-1 rounded-2xl border bg-orange-500 text-white text-xs hover:bg-blue-600"
             >
-              Vis tiltak
+              Show suggestions
             </button>
           )}
         </div>
@@ -84,8 +84,8 @@ export default function DetailTable({ data, showDate, fileMachines, showMachineN
             <table className="table-fixed w-full">
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="border border-gray-300 px-2 py-1 w-16">Kode</th>
-                  <th className="border border-gray-300 px-2 py-1">Beskrivelse</th>
+                  <th className="border border-gray-300 px-2 py-1 w-16">Code</th>
+                  <th className="border border-gray-300 px-2 py-1">Description</th>
                 </tr>
               </thead>
               <tbody>
@@ -94,7 +94,7 @@ export default function DetailTable({ data, showDate, fileMachines, showMachineN
                 <tr><td className="border px-2 py-1">L</td><td className="border px-2 py-1">Latched</td></tr>
                 <tr><td className="border px-2 py-1">B</td><td className="border px-2 py-1">Beam inhibit</td></tr>
                 <tr><td className="border px-2 py-1">M</td><td className="border px-2 py-1">Motion inhibit</td></tr>
-                <tr><td className="border px-2 py-1">K</td><td className="border px-2 py-1">Kill (stoppet behandling)</td></tr>
+                <tr><td className="border px-2 py-1">K</td><td className="border px-2 py-1">Kill (Process stopped)</td></tr>
                 <tr><td className="border px-2 py-1">W</td><td className="border px-2 py-1">Warning</td></tr>
                 <tr><td className="border px-2 py-1">O</td><td className="border px-2 py-1">Override</td></tr>
                 <tr><td className="border px-2 py-1">P</td><td className="border px-2 py-1">Power inhibit</td></tr>
@@ -108,9 +108,9 @@ export default function DetailTable({ data, showDate, fileMachines, showMachineN
         <thead>
           <tr>
             <th className="text-left py-1 w-40">
-              {showDate ? "Dato & Klokkeslett" : "Klokkeslett"}
+              {showDate ? "Date & Time" : "Time"}
             </th>
-            <th className="text-center py-1">Beskrivelse</th>
+            <th className="text-center py-1">Description</th>
           </tr>
         </thead>
         <tbody>

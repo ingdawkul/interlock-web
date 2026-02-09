@@ -12,7 +12,6 @@ import {
   ReferenceArea,
   ReferenceLine
 } from "recharts";
-import { Bold } from "lucide-react";
 
 export default function TrendViewer({ trendData }) {
   const [selected, setSelected] = useState(null);
@@ -374,14 +373,14 @@ function IndexTooltip({ active, payload }) {
 
   return (
     <div className="bg-white panel rounded-2xl p-4">
-      <h2 className="font-bold text-lg mb-3">Trend-analyse</h2>
+      <h2 className="font-bold text-lg mb-3">Trend analysis</h2>
       <div className="flex gap-4">
         {/* Parameterliste */}
         <div className="w-1/3 max-h-[600px] overflow-y-auto border rounded-xl p-2">
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Søk parameter..."
+            placeholder="Search parameters..."
             className="w-full mb-2 px-3 py-2 border rounded-xl"
           />
           <ul className="space-y-1 text-sm">
@@ -421,7 +420,7 @@ function IndexTooltip({ active, payload }) {
         <div className="w-2/3 h-[600px]">
           {!selected && (
             <div className="h-full flex items-center justify-center text-gray-500">
-              Velg en parameter for å vise trend
+              Select a parameter to view the trend
             </div>
           )}
           {selected && (
@@ -435,7 +434,7 @@ function IndexTooltip({ active, payload }) {
                     showRange ? "bg-orange-500 text-white" : "bg-gray-100 hover:bg-gray-200"
                   }`}
                 >
-                  {showRange ? "Skjul min / max" : "Vis min / max"}
+                  {showRange ? "Hide min / max" : "Show min / max"}
                 </button>
 
                 <button
@@ -445,7 +444,7 @@ function IndexTooltip({ active, payload }) {
                     showThresholds ? "bg-orange-500 text-white" : "bg-gray-100 hover:bg-gray-200"
                   }`}
                 >
-                  {showThresholds ? "Skjul terskellinjer" : "Vis terskellinjer"}
+                  {showThresholds ? "Hide threshold lines" : "Show threshold lines"}
                 </button>
 
                 <button
@@ -454,14 +453,14 @@ function IndexTooltip({ active, payload }) {
                     xAxisMode === "time" ? "bg-orange-500 text-white" : "bg-gray-100 hover:bg-gray-200"
                   }`}
                 >
-                  {xAxisMode === "time" ? "Vis jevnt fordelt akse" : "Vis tidsbasert akse"}
+                  {xAxisMode === "time" ? "Show evenly distributed axis" : "Show time-based axis"}
                 </button>
               </h3>
 
               <ResponsiveContainer width="100%" height="100%">
                 {Object.keys(visibleDataByMachine).length === 0 && (
                 <div className="h-full flex items-center justify-center text-gray-400">
-                    Ingen maskiner valgt
+                    None machines selected
                 </div>
                 )}
 
@@ -557,14 +556,14 @@ function IndexTooltip({ active, payload }) {
                 cursor={xAxisMode === "index" ? { stroke: "#999", strokeDasharray: "3 3" } : false}
                 />
 
-                 <Legend
-  onClick={e => {
-    const key = e.value;
+                <Legend
+                onClick={e => {
+                const key = e.value;
 
-    setVisibleMachines(prev => {
-      const machines = Object.keys(prev);
-      const isOnlyOneVisible =
-        machines.filter(m => prev[m]).length === 1 && prev[key];
+                setVisibleMachines(prev => {
+                  const machines = Object.keys(prev);
+                  const isOnlyOneVisible =
+                    machines.filter(m => prev[m]).length === 1 && prev[key];
 
       // SOLO → reset alle
       if (isOnlyOneVisible) {

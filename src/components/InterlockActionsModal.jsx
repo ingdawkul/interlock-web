@@ -19,7 +19,7 @@ export default function InterlockActionsModal({ interlock, onClose }) {
         </button>
 
         <h2 className="text-lg font-semibold mb-2">
-        Tiltak for interlock
+        Suggestions for interlock 
         {Interlock && (
             <span className="text-lg font-semibold mb-2">
             <strong></strong> {Interlock}
@@ -37,7 +37,7 @@ export default function InterlockActionsModal({ interlock, onClose }) {
             ${open
             ? "bg-orange-500 text-white border-orange-600 hover:bg-orange-600"
             : "bg-white text-blue-600 border-gray-300 hover:bg-gray-100"}`}
-            title="Vis/skjul Første sjekk"
+            title="Show/Hide First Check"
             >
             ℹ️
             </button>
@@ -60,24 +60,24 @@ export default function InterlockActionsModal({ interlock, onClose }) {
                 >
                 <div className="absolute -top-2 left-4 w-3 h-3 bg-white border-l border-t border-gray-300 rotate-45"></div>
                 <h3 className="font-semibold text-gray-800 mb-2">
-                    Første sjekk ved feildiagnostisering
+                    First check during fault diagnostics  
                 </h3>
                 <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                    <li><strong>Maskin PÅ:</strong> Bruk ID-liste for videre feilsøking.</li>
-                    <li><strong>Standby:</strong> Start grunnleggende oppstart før ID-liste er relevant.</li>
+                    <li><strong>Machine ON:</strong> Use ID list for further fault diagnosis.</li>
+                    <li><strong>Standby:</strong> Start basic startup before ID list is relevant.</li>
                     <li>
-                        <strong>PEL:</strong> Start grunnleggende oppstart før ID-liste er relevant.
+                        <strong>PEL:</strong> Start basic startup before ID list is relevant.
                         <br />
                         <em className="text-gray-600">
-                        Hvor lenge har maskinen vært av?<br />
-                        Sjekk temperatur, flow og vann.
+                        How long has the machine been off?<br />
+                        Check temperature, flow, and water.
                         </em>
                     </li>
-                    <li><strong>UNKNOWN:</strong> Start grunnleggende oppstart før ID-liste er relevant.</li>
-                    <li><strong>Power Off:</strong> Start grunnleggende oppstart før ID-liste er relevant.</li>
+                    <li><strong>UNKNOWN:</strong> Start basic startup before ID list is relevant.</li>
+                    <li><strong>Power Off:</strong> Start basic startup before ID list is relevant.</li>
                 </ul>
                 <p className="text-xs text-gray-500 mt-3">
-                    Begynn alltid med å cleare feil. 
+                    Always begin by clearing errors. 
                 </p>
             </div>
             )}
@@ -85,7 +85,7 @@ export default function InterlockActionsModal({ interlock, onClose }) {
 
         {/* Severity */}
         <div className="flex items-center gap-2 mb-4 font-semibold">
-          <span className="text-sm">Alvorlighet:</span>
+          <span className="text-sm">Severity:</span>
           <span
             className={`text-sm px-3 py-1 rounded-full text-white ${severityColor[Severity]}`}
           >
@@ -97,21 +97,21 @@ export default function InterlockActionsModal({ interlock, onClose }) {
         <div className="space-y-3 text-sm">
           {FirstStep && (
             <div>
-              <div className="font-semibold">Tiltak 1</div>
+              <div className="font-semibold">Action 1</div>
               <div>{FirstStep}</div>
             </div>
           )}
 
           {SecondStep && (
             <div>
-              <div className="font-semibold">Tiltak 2</div>
+              <div className="font-semibold">Action 2</div>
               <div>{SecondStep}</div>
             </div>
           )}
 
           {!FirstStep && !SecondStep && (
             <div className="text-gray-500 italic">
-              Ingen tiltak registrert
+              No actions registered
             </div>
           )}
 

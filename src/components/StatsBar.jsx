@@ -12,21 +12,21 @@ export default function StatsBar({ totalLines, matches, uniqueCount, recentInter
         className="p-3 rounded-2xl shadow-sm border"
         style={{ color: 'var(--btn-secondary-hover)', borderColor: 'var(--border-soft)' }}
       > 
-        Linjer: <strong>{totalLines}</strong>
+        Lines: <strong>{totalLines}</strong>
       </div>
 
       <div
         className="p-3 rounded-2xl shadow-sm border"
         style={{ color: 'var(--btn-secondary-hover)', borderColor: 'var(--border-soft)' }}
       >
-        Antall interlocks: <strong>{matches}</strong>
+        Interlocks: <strong>{matches}</strong>
       </div>
 
       <div
         className="p-3 rounded-2xl shadow-sm border"
         style={{ color: 'var(--btn-secondary-hover)', borderColor: 'var(--border-soft)' }}
       >
-        Unike interlocks: <strong>{uniqueCount}</strong>
+        Unique Interlocks: <strong>{uniqueCount}</strong>
       </div>
 
       {/* Knapp for å åpne modal */}
@@ -34,7 +34,7 @@ export default function StatsBar({ totalLines, matches, uniqueCount, recentInter
         className="px-4 py-3 rounded-2xl border border-orange-500 bg-gray-100 hover:bg-gray-200"
         onClick={() => setShowInterlocks (true)}
       >
-        Vis siste interlocks
+        Show recent interlocks
       </button>
 
       {/* Modal */}
@@ -63,7 +63,7 @@ export default function StatsBar({ totalLines, matches, uniqueCount, recentInter
         className="px-4 py-3 rounded-2xl border border-orange-500 bg-gray-100 hover:bg-gray-200"
         onClick={() => setShowTrends(true)}
       >
-        Vis controllere 
+        Show controllers
       </button>
 
       {/* Modal */}
@@ -91,7 +91,7 @@ export default function StatsBar({ totalLines, matches, uniqueCount, recentInter
       className="px-4 py-3 rounded-2xl border border-orange-500 bg-gray-100 hover:bg-gray-200"
       onClick={() => setShowTimeline(prev => !prev)}
     >
-      {showTimeline ? 'Skjul dagstidslinje' : 'Vis dagstidslinje'}
+      {showTimeline ? 'Hide timeline' : 'Show timeline'}
     </button>
 
     </div>

@@ -63,7 +63,7 @@ export default function FilePicker({ onFiles, height = "6vh" }) {
         } else {
           // RETRY FAIL — returner alt som ble OK
           console.warn(
-            "Kunne ikke lese noen filer etter full retry:",
+            "Failed to read any files after all retry attempts:",
             failedFiles.map((f) => f.name)
           );
           onFiles(okFiles);
@@ -117,7 +117,7 @@ export default function FilePicker({ onFiles, height = "6vh" }) {
           onClick={() => document.getElementById("fileInput").click()}
         >
           {isDragging 
-          ? "Slipp filene her!" : "Trykk her for å velge filer eller slipp dem her"}
+          ? "Drop files here!" : "Click here to select files or drop them here"}
         </div>
 
         <input

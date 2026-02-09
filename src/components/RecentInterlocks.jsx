@@ -33,9 +33,9 @@ export default function RecentInterlocks({ interlocks }) {
           color: "var(--text-primary)",
         }}
       >
-        <h2 className="text-lg font-semibold mb-3">Siste Interlocks</h2>
+        <h2 className="text-lg font-semibold mb-3">Last Interlocks</h2>
         <p className="italic text-sm text-text-secondary">
-          Ingen interlocks funnet.
+          No interlocks found.
         </p>
       </div>
     );
@@ -89,7 +89,7 @@ export default function RecentInterlocks({ interlocks }) {
         color: "var(--text-primary)",
       }}
     >
-      <h2 className="text-lg font-semibold mb-4">Siste Interlocks</h2>
+      <h2 className="text-lg font-semibold mb-4">Last Interlocks</h2>
 
       {/* Fjernet overflow-y-auto og max-h */}
       <ul className="space-y-3 pr-1">
@@ -141,11 +141,11 @@ export default function RecentInterlocks({ interlocks }) {
           onClick={() => setPage(page - 1)}
           className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:bg-gray-500"
         >
-          ← Forrige
+          ← Previous 
         </button>
 
         <span className="text-white font-semibold">
-          Side {page + 1} av {totalPages}
+          Page {page + 1} av {totalPages}
         </span>
 
         <button
@@ -153,7 +153,7 @@ export default function RecentInterlocks({ interlocks }) {
           onClick={() => setPage(page + 1)}
           className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:bg-gray-500"
         >
-          Neste →
+          Next →
         </button>
       </div>
     </div>

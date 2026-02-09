@@ -4,11 +4,9 @@ import FilePicker from './components/FilePicker'
 import StatsBar from './components/StatsBar'
 import InterlockTable from './components/InterlockTable'
 import DetailTable from './components/DetailTable'
-import RecentInterlocks from './components/RecentInterlocks'
 import DayTimeline from './components/DayTimeline'
 import { parseLogText } from './utils/parser'
 import './theme.css'
-import TrendViewer from './components/TrendViewer'
 import InterlockSearch from "./components/InterlockSearch"
 import InterlockActionsModal from "./components/InterlockActionsModal"
 import { interlockMap } from './utils/interlockLookup'
@@ -256,7 +254,7 @@ const showMachineName = uniqueMachineNames > 1
     }
 
     normalizeAndProcess().catch(err =>
-      console.error('Feil ved lesing av filer:', err)
+      console.error("Error while reading files:", err)
     )
   }
 
@@ -284,9 +282,9 @@ if (rawFiles.length === 0) {
       {/* Header */}
       <header className="flex items-center justify-between p-6 max-w-[1400px] mx-auto w-full">
         <img
-          src="/interlock-web/bjorn.png"
+          src="/interlock-web/bjornlogo.png"
           alt="favicon"
-          className="w-48 h-20 rounded-2xl"
+          className="w-56 h-24 rounded-2xl"
         />
       </header>
 
@@ -302,7 +300,7 @@ if (rawFiles.length === 0) {
             } else if (idOrObj && interlockMap[idOrObj]) {
               setSearchInterlock(interlockMap[idOrObj]);
             } else {
-              console.warn("Fant ikke interlock for id:", idOrObj);
+              console.warn("Could not find interlock for id:", idOrObj);
             }
           }}
         />
@@ -337,14 +335,14 @@ if (rawFiles.length === 0) {
       className="app-container p-6 max-w-[1400px] mx-auto text-primary"
       style={{ backgroundColor: 'var(--color-primary-dark)' }}
     >
-      <header className="flex items-center justify-between mb-6">
-        <button onClick={() => window.location.reload()}>
-          <img
-            src={import.meta.env.BASE_URL + 'bjorn.png'}
-            alt="favicon"
-            className="w-48 h-20 rounded-2xl"
-          />
-        </button>
+    <header className="flex items-center justify-between mb-6">
+      <button onClick={() => window.location.reload()}>
+        <img
+          src={import.meta.env.BASE_URL + 'bjornlogo.png'}
+          alt="favicon"
+          className="w-56 h-24 rounded-2xl transition-transform duration-200 hover:scale-110"
+        />
+      </button>
 
         <div style={{ minWidth: 320 }}>
           <FilePicker onFiles={handleDroppedFiles} />
@@ -353,7 +351,7 @@ if (rawFiles.length === 0) {
 
       <div className="bg-white panel mb-4 border rounded-2xl p-4">
         <div className="flex justify-between items-center mb-2">
-          <p className="font-semibold">Valgte filer:</p>
+          <p className="font-semibold">Selected files:</p>
         </div>
 
         <ul className="list-none text-sm mb-6 space-y-3">
@@ -371,7 +369,7 @@ if (rawFiles.length === 0) {
 
                 {showTimeline && fileDowntime[file] && (
                   <span className="text-red-600 font-semibold">
-                    | {fileDowntime[file].count} stans (
+                    | {fileDowntime[file].count} halt (
                     {fileDowntime[file].minutes} min)
                   </span>
                 )}
@@ -412,7 +410,7 @@ if (rawFiles.length === 0) {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Søk (ID, Type eller Beskrivelse)"
+            placeholder="Search (ID, Type or Description)"
             className="px-4 py-3 rounded-2xl w-80 border border-gray-400"
           />
         </div>

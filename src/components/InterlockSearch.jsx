@@ -21,7 +21,7 @@ export default function InterlockSearch({ onSelect }) {
           setValue(e.target.value);
           setOpen(true);
         }}
-        placeholder="Søk interlock ID"
+        placeholder="Search interlock ID"
         className="w-full px-4 py-3 rounded-2xl border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
