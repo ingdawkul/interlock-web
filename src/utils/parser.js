@@ -27,12 +27,21 @@ function detectMachineFromLine(line) {
   const snMatch = line.match(
     /\b(?:SN|SN#|Serial(?:\s+Number)?)\s*[:=]?\s*(\d{4})\b/i
   );
-  if (snMatch) return mapSerialToMachine(snMatch[1]);
+    if (snMatch) {
+    const sn = snMatch[1];
+    return {
+      serial: sn,
+      machine: SERIAL_TO_MACHINE[sn] || null // kan være null
+    };
+  }
 
   const hMatch = line.match(/\bH(\d{6})\b/);
   if (hMatch) {
     const last4 = hMatch[1].slice(-4);
-    return mapSerialToMachine(last4);
+      return {
+      serial: last4,
+      machine: SERIAL_TO_MACHINE[last4] || null
+    };
   }
 
   return null;
@@ -136,6 +145,7 @@ export function parseLogText(text, progressCallback) {
 
   let currentDate = null;
   let machineName = null;
+  let serialNumber = null;
 
   // -----------------------------
   // Downtime state
@@ -155,9 +165,12 @@ export function parseLogText(text, progressCallback) {
     total++;
 
     // Maskindeteksjon
-    if (!machineName) {
+    if (!serialNumber) {
       const detected = detectMachineFromLine(line);
-      if (detected) machineName = detected;
+         if (detected) {
+        serialNumber = detected.serial;
+        machineName = detected.machine || `SN#${detected.serial}`;
+      }
     }
 
     let dateStr = null;
