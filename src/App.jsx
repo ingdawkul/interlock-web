@@ -5,7 +5,7 @@ import StatsBar from './components/StatsBar'
 import InterlockTable from './components/InterlockTable'
 import DetailTable from './components/DetailTable'
 import DayTimeline from './components/DayTimeline'
-import { parseLogText } from './utils/parser'
+import { parseLogText, parsePowerEvents, buildPowerIntervals } from './utils/parser'
 import './theme.css'
 import InterlockSearch from "./components/InterlockSearch"
 import InterlockActionsModal from "./components/InterlockActionsModal"
@@ -24,6 +24,8 @@ export default function App() {
   const [fileDowntime, setFileDowntime] = useState({})
   const [searchInterlock, setSearchInterlock] = useState(null);
   const [showTimeline, setShowTimeline] = useState(false)
+  const [filePowerRaw, setFilePowerRaw] = useState({})
+  const [filePowerRawEvents, setFilePowerRawEvents] = useState({})
 
 
   // 🆕 Trend / AVG analyse
@@ -144,6 +146,8 @@ const showMachineName = uniqueMachineNames > 1
       const machines = {}
       const downtimeStats = {}
       const downtimeRaw = {}
+      const powerRaw = {} 
+      const powerRawEventsPerFile = {}
       const systemModesRaw = {}
       const combinedTrendData = {}
 
@@ -161,6 +165,20 @@ const showMachineName = uniqueMachineNames > 1
 
         total += t
         matches += m
+
+        // 🔌 POWER EVENTS
+        const lines = f.text.split("\n")
+
+        const rawPowerEvents = parsePowerEvents(lines)
+        const powerIntervals = buildPowerIntervals(rawPowerEvents)
+
+    if (rawPowerEvents.length > 0) {
+      powerRawEventsPerFile[f.name] = rawPowerEvents
+    }
+
+     if (powerIntervals.length > 0) {
+        powerRaw[f.name] = powerIntervals
+      }
 
         if (machineName) {
           machines[f.name] = machineName
@@ -251,6 +269,8 @@ const showMachineName = uniqueMachineNames > 1
       setMatchLines(matches)
       setRecentInterlocks(sortedRecent)
       setSelected(null)
+      setFilePowerRaw(powerRaw)
+      setFilePowerRawEvents(powerRawEventsPerFile)
     }
 
     normalizeAndProcess().catch(err =>
@@ -369,10 +389,28 @@ if (rawFiles.length === 0) {
 
                 {showTimeline && fileDowntime[file] && (
                   <span className="text-red-600 font-semibold">
-                    | {fileDowntime[file].count} halt (
+                    | {fileDowntime[file].count} STOP (
                     {fileDowntime[file].minutes} min)
                   </span>
                 )}
+
+              {showTimeline && filePowerRawEvents[file]?.length > 0 && (
+                <span className="text-sm text-gray-500 font-semibold">
+                  {" | "}
+                  {filePowerRawEvents[file]
+                    .sort((a, b) => a.time.localeCompare(b.time))
+                    .map((e, i) => (
+                      <span
+                        key={i}
+                        className={`mr-2 font-semibold ${
+                          e.type === "OFF" ? "text-purple-600" : "text-yellow-600"
+                        }`}
+                      >
+                        {e.type} {e.time}
+                      </span>
+                    ))}
+                </span>
+              )}
               </div>
 
               <div
@@ -384,6 +422,8 @@ if (rawFiles.length === 0) {
                   <DayTimeline
                     downtime={Object.values(fileDowntimeRaw[file] || {}).flat()}
                     systemModes={Object.values(fileSystemModesRaw[file] || {}).flat()}
+                    powerEvents={filePowerRaw[file] || []}
+                    powerRawEvents={filePowerRawEvents[file] || []}
                   />
                 </div>
               </div>
@@ -393,7 +433,7 @@ if (rawFiles.length === 0) {
 
 
 
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4 relative z-20">
           {/* Venstre: StatsBar */}
           <StatsBar
             totalLines={totalLines}

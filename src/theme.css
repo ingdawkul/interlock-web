@@ -83,6 +83,9 @@
   transform: translateY(-6px);
   margin-left: 1rem;
   margin-top: 0.25rem;
+  position: relative;
+  overflow: hidden; 
+  z-index: 0;
 
   transition:
     max-height 0.35s ease,
@@ -91,14 +94,16 @@
 }
 
 .timeline-wrapper.open {
-  max-height: 500px;
+  max-height: 120px;
   opacity: 1;
   transform: translateY(0);
 }
 
 /* INDRE – må få lov til å tegne uten klipping */
 .timeline-inner {
-  overflow: visible;
+  overflow: hidden;
+  position: relative;
+  z-index: 0;
 }
 
 html {

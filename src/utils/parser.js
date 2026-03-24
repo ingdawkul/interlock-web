@@ -106,9 +106,6 @@ const TREND_PARAMETERS = [
   "STNCoolingCtrl::logStatistics SlimcombineGuideSolenoidFlowHighStatistics"
 ];
 
-
-
-
 // Full trendlinje-regex
 const AVG_REGEX = /\bavg\s*=\s*(-?\d+(?:\.\d+)?)/i;
 const MIN_REGEX = /\bmin\s*=\s*(-?\d+(?:\.\d+)?)/i;
@@ -186,7 +183,6 @@ export function parseLogText(text, progressCallback) {
         dateStr = currentDate;
       }
     }
-
 // -----------------------------
 // SystemMode parsing (STATE-based)
 // -----------------------------
@@ -407,4 +403,47 @@ if (dateStr && timeStr && line.includes("avg=")) {
     systemModesByDate,
     trendData
   };
+}
+export const POWER_OFF_REGEX =
+  /(\d{2}:\d{2}:\d{2}).*CMNInterlockMaster::assertInterlock.*Input Power is lost or instable.*asserted/i
+
+export const POWER_ON_REGEX =
+  /(\d{2}:\d{2}:\d{2}).*CMNInterlockMaster::releaseInterlock.*Input Power is lost or instable.*released/i
+
+export function parsePowerEvents(lines) {
+  const events = []
+
+  for (const line of lines) {
+    let match
+
+    if ((match = line.match(POWER_OFF_REGEX))) {
+      events.push({ time: match[1], type: "OFF" })
+    }
+
+    if ((match = line.match(POWER_ON_REGEX))) {
+      events.push({ time: match[1], type: "ON" })
+    }
+  }
+
+  return events
+}
+
+export function buildPowerIntervals(events) {
+  const intervals = []
+  let currentOff = null
+
+  for (const e of events) {
+    if (e.type === "OFF") currentOff = e.time
+
+    if (e.type === "ON" && currentOff) {
+      intervals.push({
+        start: currentOff,
+        end: e.time,
+        type: "OFF"
+      })
+      currentOff = null
+    }
+  }
+
+  return intervals
 }
