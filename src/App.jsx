@@ -342,6 +342,9 @@ if (rawFiles.length === 0) {
           onClose={() => setSearchInterlock(null)}
         />
       )}
+      <footer className="text-center text-xs text-gray-400 mt-6 pb-2 opacity-70">
+        © {new Date().getFullYear()} OUS AMF ING. All rights reserved.
+      </footer>
     </div>
   );
 }
@@ -476,6 +479,9 @@ if (rawFiles.length === 0) {
           onClose={() => setSearchInterlock(null)}
         />
       )}
+      <footer className="text-center text-xs text-gray-400 mt-6 pb-2 opacity-70">
+        © {new Date().getFullYear()} OUS AMF ING. All rights reserved.
+      </footer>
     </div>
   )
 }
