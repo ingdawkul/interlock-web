@@ -435,9 +435,7 @@ if (rawFiles.length === 0) {
         </ul>
 
 
-
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4 relative z-20">
-          {/* Venstre: StatsBar */}
+        <div className="flex flex-wrap items-center gap-4 mb-4 relative z-20">
           <StatsBar
             totalLines={totalLines}
             matches={matchLines}
@@ -446,15 +444,9 @@ if (rawFiles.length === 0) {
             trendData={trendData}
             showTimeline={showTimeline}
             setShowTimeline={setShowTimeline}
-          />
-
-
-          {/* Høyre: Søkefelt */}
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search (ID, Type or Description)"
-            className="px-4 py-3 rounded-2xl w-80 border border-gray-400"
+            fileMachines={fileMachines}
+            query={query}
+            setQuery={setQuery}
           />
         </div>
 
