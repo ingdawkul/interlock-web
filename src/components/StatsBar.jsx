@@ -18,6 +18,18 @@ export default function StatsBar({
   const [showInterlocks, setShowInterlocks] = useState(false);
   const [showTrends, setShowTrends] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [trendInitialParam, setTrendInitialParam] = useState(null);
+
+  function handleOpenTrend(param) {
+    setTrendInitialParam(param);
+    setShowTrends(true);
+    // ← Report stays open, TrendViewer opens on top (z-60)
+  }
+
+  function handleCloseTrends() {
+    setShowTrends(false);
+    setTrendInitialParam(null);
+  }
 
   return (
     <div className="flex flex-wrap gap-4 items-center text-sm w-full">
@@ -72,30 +84,30 @@ export default function StatsBar({
       {/* ── Trend / Controllers ── */}
       <button
         className="px-4 py-3 rounded-2xl border border-orange-500 bg-gray-100 hover:bg-gray-200"
-        onClick={() => setShowTrends(true)}
+        onClick={() => { setTrendInitialParam(null); setShowTrends(true); }}
       >
         Show controllers
       </button>
 
+      {/* TrendViewer modal – z-60 so it layers above Report (z-50) */}
       {showTrends && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" style={{ zIndex: 60 }}>
           <div
             className="bg-white rounded-lg shadow-lg max-w-8xl w-full p-6 relative overflow-hidden"
             style={{ maxHeight: '100vh' }}
           >
             <button
               className="absolute top-4 right-4 px-4 py-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 text-xl font-bold shadow-md"
-              onClick={() => setShowTrends(false)}
+              onClick={handleCloseTrends}
             >
               ✕
             </button>
             <div className="overflow-y-auto panel">
-              <TrendViewer trendData={trendData} />
+              <TrendViewer trendData={trendData} initialParam={trendInitialParam} />
             </div>
           </div>
         </div>
       )}
-
 
       {/* ── Timeline ── */}
       <button
@@ -105,7 +117,7 @@ export default function StatsBar({
         {showTimeline ? 'Hide timeline' : 'Show timeline'}
       </button>
 
-       {/* ── Report ── */}
+      {/* ── Report – z-50 ── */}
       <button
         className="px-4 py-3 rounded-2xl border border-blue-600 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold flex items-center gap-2"
         onClick={() => setShowReport(true)}
@@ -118,10 +130,11 @@ export default function StatsBar({
           trendData={trendData}
           fileMachines={fileMachines}
           onClose={() => setShowReport(false)}
+          onOpenTrend={handleOpenTrend}
         />
       )}
 
-      {/* ── Search – pushed to the right ── */}
+      {/* ── Search ── */}
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}

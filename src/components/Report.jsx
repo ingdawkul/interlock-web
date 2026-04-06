@@ -133,7 +133,7 @@ async function exportToWord({ machineName, errors, warnings, date, multiMachine 
 // ──────────────────────────────────────────────
 // Main component
 // ──────────────────────────────────────────────
-export default function Report({ trendData, fileMachines, onClose }) {
+export default function Report({ trendData, fileMachines, onClose, onOpenTrend }) {
   const [exporting, setExporting] = useState(false);
 
   const machineNames = useMemo(() => {
@@ -146,7 +146,6 @@ export default function Report({ trendData, fileMachines, onClose }) {
     return unique.length > 1;
   }, [fileMachines]);
 
-  // ── Key change: split each param's points by machine, classify independently ──
   const { errors, warnings, ok } = useMemo(() => {
     const errors = [];
     const warnings = [];
@@ -155,7 +154,6 @@ export default function Report({ trendData, fileMachines, onClose }) {
     for (const [param, points] of Object.entries(trendData || {})) {
       const cfg = TREND_CONFIG[param] || {};
 
-      // Group points by machine
       const byMachine = points.reduce((acc, p) => {
         const key = p.machine || "UNKNOWN";
         if (!acc[key]) acc[key] = [];
@@ -175,7 +173,6 @@ export default function Report({ trendData, fileMachines, onClose }) {
       }
     }
 
-    // Sort: by machine first, then param name
     const sort = (arr) =>
       arr.sort((a, b) => a.machine.localeCompare(b.machine) || a.param.localeCompare(b.param));
 
@@ -233,6 +230,11 @@ export default function Report({ trendData, fileMachines, onClose }) {
             <SummaryChip count={errors.length} label="Errors" color="bg-red-100 text-red-700 border-red-300" dot="bg-red-500" />
             <SummaryChip count={warnings.length} label="Warnings" color="bg-yellow-100 text-yellow-700 border-yellow-300" dot="bg-yellow-400" />
             <SummaryChip count={ok.length} label="OK" color="bg-green-100 text-green-700 border-green-300" dot="bg-green-500" />
+            {onOpenTrend && (
+              <span className="text-xs text-gray-400 flex items-center ml-2">
+                Click any error or warning to open its trend graph →
+              </span>
+            )}
           </div>
 
           {errors.length === 0 && warnings.length === 0 && (
@@ -248,7 +250,14 @@ export default function Report({ trendData, fileMachines, onClose }) {
           {errors.length > 0 && (
             <Section title="🔴 Errors – Requires immediate action" titleClass="text-red-700" borderClass="border-red-200" bgClass="bg-red-50">
               {errors.map((item) => (
-                <ParamRow key={`${item.machine}-${item.param}`} item={item} statusColor="text-red-600" badgeClass="bg-red-100 text-red-700 border-red-300" multiMachine={multiMachine} />
+                <ParamRow
+                  key={`${item.machine}-${item.param}`}
+                  item={item}
+                  statusColor="text-red-600"
+                  badgeClass="bg-red-100 text-red-700 border-red-300"
+                  multiMachine={multiMachine}
+                  onOpenTrend={onOpenTrend}
+                />
               ))}
             </Section>
           )}
@@ -256,7 +265,14 @@ export default function Report({ trendData, fileMachines, onClose }) {
           {warnings.length > 0 && (
             <Section title="⚠️ Warnings – Monitor closely" titleClass="text-yellow-700" borderClass="border-yellow-200" bgClass="bg-yellow-50">
               {warnings.map((item) => (
-                <ParamRow key={`${item.machine}-${item.param}`} item={item} statusColor="text-yellow-600" badgeClass="bg-yellow-100 text-yellow-700 border-yellow-300" multiMachine={multiMachine} />
+                <ParamRow
+                  key={`${item.machine}-${item.param}`}
+                  item={item}
+                  statusColor="text-yellow-600"
+                  badgeClass="bg-yellow-100 text-yellow-700 border-yellow-300"
+                  multiMachine={multiMachine}
+                  onOpenTrend={onOpenTrend}
+                />
               ))}
             </Section>
           )}
@@ -305,7 +321,7 @@ function Section({ title, titleClass, borderClass, bgClass, children }) {
   );
 }
 
-function ParamRow({ item, statusColor, badgeClass, multiMachine }) {
+function ParamRow({ item, statusColor, badgeClass, multiMachine, onOpenTrend }) {
   const cfg = TREND_CONFIG[item.param] || {};
   const unit = cfg.unit || "";
 
@@ -316,8 +332,16 @@ function ParamRow({ item, statusColor, badgeClass, multiMachine }) {
     cfg.max !== undefined ? `Max: ${cfg.max}${unit ? " " + unit : ""}` : null,
   ].filter(Boolean).join("  /  ");
 
+  const clickable = !!onOpenTrend;
+
   return (
-    <div className="px-4 py-3 flex flex-col gap-1 bg-white hover:bg-gray-50 transition-colors">
+    <div
+      className={`px-4 py-3 flex flex-col gap-1 bg-white transition-colors ${
+        clickable ? "cursor-pointer hover:bg-blue-50 group" : "hover:bg-gray-50"
+      }`}
+      onClick={clickable ? () => onOpenTrend(item.param) : undefined}
+      title={clickable ? `Open trend graph for ${item.param}` : undefined}
+    >
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <span className="font-mono text-xs text-gray-700 truncate" title={item.param}>
@@ -326,6 +350,12 @@ function ParamRow({ item, statusColor, badgeClass, multiMachine }) {
           {multiMachine && (
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-300 shrink-0">
               {item.machine}
+            </span>
+          )}
+          {/* Chart link hint – appears on hover */}
+          {clickable && (
+            <span className="text-xs text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+              📈 View graph
             </span>
           )}
         </div>
