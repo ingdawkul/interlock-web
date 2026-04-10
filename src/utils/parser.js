@@ -460,3 +460,112 @@ export function buildPowerIntervals(events) {
 
   return intervals
 }
+// ─────────────────────────────────────────────────────────────────────────────
+// BEAM EVENT PARSING 
+// ─────────────────────────────────────────────────────────────────────────────
+
+// A palette of visually distinct colours for arbitrary energy strings.
+// The function hashes the energy name to a consistent index so the same
+// energy always gets the same colour, even across files / sessions.
+const ENERGY_PALETTE = [
+  "#2563eb", // blue
+  "#16a34a", // green
+  "#9333ea", // purple
+  "#dc2626", // red
+  "#ea580c", // orange
+  "#0891b2", // cyan
+  "#b45309", // amber-dark
+  "#be185d", // pink
+  "#4f46e5", // indigo
+  "#15803d", // green-dark
+  "#c2410c", // orange-dark
+  "#7c3aed", // violet
+  "#0f766e", // teal
+  "#d97706", // yellow-dark
+  "#1d4ed8", // blue-dark
+]
+
+// kV imaging is always kept gray regardless
+const KV_COLOR = "#64748b"
+
+function hashString(str) {
+  let h = 0
+  for (let i = 0; i < str.length; i++) {
+    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0
+  }
+  return Math.abs(h)
+}
+
+export function getEnergyColor(energy) {
+  if (!energy || energy === "0k") return KV_COLOR
+  return ENERGY_PALETTE[hashString(energy) % ENERGY_PALETTE.length]
+}
+
+// Regex for BeamOnEnter (SPV line)
+const BEAM_ON_ENTER_REGEX =
+  /(\d{2}:\d{2}:\d{2}).*SPVSystemMode::BeamOnEnter Enter BeamOn state in (\w+) mode, energy ([^,]+), dose rate ([\d.]+) MU\/min/
+
+// Regex for BGM exit – gives pulse counter (proxy for MU delivered)
+const BEAM_EXIT_REGEX =
+  /(\d{2}:\d{2}:\d{2}).*BGMBeamCtrlLoop::Exit BeamOnToOff State Goto Beam off state, the last beam pulse counter is (\d+)/
+
+/**
+ * Parses all beam-on events from a log file's lines.
+ * Returns array of beam objects:
+ * {
+ *   date, startTime, endTime, durationSec,
+ *   energy, doseRate, pulseCount, mode, isMV
+ * }
+ */
+export function parseBeamEvents(lines) {
+  const beams = []
+  let currentDate = null
+  let pending = null
+
+  const dateLineRegex = /^\s*(\d{4}-\d{2}-\d{2})[\t ]+(\d{2}:\d{2}:\d{2})/
+
+  for (const line of lines) {
+    const dateM = dateLineRegex.exec(line)
+    if (dateM) currentDate = dateM[1]
+
+    const onM = BEAM_ON_ENTER_REGEX.exec(line)
+    if (onM) {
+      // Flush unmatched pending beam (no exit found before next BeamOn)
+      if (pending) {
+        beams.push({ ...pending, endTime: null, durationSec: null, pulseCount: null })
+      }
+      const energy = onM[3].trim()
+      pending = {
+        date:      currentDate,
+        startTime: onM[1],
+        energy,
+        doseRate:  parseFloat(onM[4]),
+        mode:      onM[2],
+        isMV:      energy !== "0k",
+      }
+      continue
+    }
+
+    const offM = BEAM_EXIT_REGEX.exec(line)
+    if (offM && pending) {
+      const endTime    = offM[1]
+      const pulseCount = parseInt(offM[2], 10)
+
+      const toSec = (t) => {
+        const [h, m, s = 0] = t.split(":").map(Number)
+        return h * 3600 + m * 60 + s
+      }
+      const durationSec = Math.max(0, toSec(endTime) - toSec(pending.startTime))
+
+      beams.push({ ...pending, endTime, durationSec, pulseCount })
+      pending = null
+    }
+  }
+
+  // Flush any beam still open at end of file
+  if (pending) {
+    beams.push({ ...pending, endTime: null, durationSec: null, pulseCount: null })
+  }
+
+  return beams
+}

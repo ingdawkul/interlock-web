@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { interlockMap, severityColor } from "../utils/interlockLookup";
 
-export default function InterlockTable({ results, onSelect, query }) {
+export default function InterlockTable({ results, onSelect, query, setQuery }) {
   const [sortKey, setSortKey] = useState("total");
   const [descending, setDescending] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
@@ -71,9 +71,35 @@ export default function InterlockTable({ results, onSelect, query }) {
   };
 
 
-  return (
-    <div className="bg-white border rounded-2xl p-4 shadow-lg">
-      <table className="w-full table-auto">
+return (
+  <div className="bg-white border rounded-2xl p-4 shadow-lg">
+    
+    {/* 🔍 Search */}
+    <div className="mb-4 relative">
+      <input
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setSelectedId(null);
+          onSelect?.(null);
+        }}
+        placeholder="Search (ID, Type or Description)"
+        className="
+          w-full
+          pl-10 pr-4 py-3
+          rounded-xl
+          border border-gray-300
+          focus:outline-none
+          focus:ring-2
+          focus:ring-blue-400
+        "
+      />
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+        🔍
+      </span>
+    </div>
+
+    <table className="w-full table-auto">
         <thead>
           <tr className="text-left">
             <th className={headerClass} onClick={() => toggleSort("id")}>

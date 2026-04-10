@@ -5,16 +5,15 @@ import StatsBar from './components/StatsBar'
 import InterlockTable from './components/InterlockTable'
 import DetailTable from './components/DetailTable'
 import DayTimeline from './components/DayTimeline'
-import { parseLogText, parsePowerEvents, buildPowerIntervals } from './utils/parser'
 import './theme.css'
 import InterlockSearch from "./components/InterlockSearch"
 import InterlockActionsModal from "./components/InterlockActionsModal"
 import { interlockMap } from './utils/interlockLookup'
+import { parseLogText, parsePowerEvents, buildPowerIntervals, parseBeamEvents } from './utils/parser'
 
 // ── Timeline legend data ──────────────────────────────────
 const TIMELINE_LEGEND = [
   { color: "#9ca3af", label: "Default – outside working hours" },
-  { color: "#22c55e", label: "Normal working hours (07:00–15:00)" },
   { color: "#dc2626", label: "Stop / fault (downtime)" },
   { color: "#3b82f6", label: "Clinical mode" },
   { color: "#fb923c", label: "Service mode" },
@@ -82,6 +81,7 @@ export default function App() {
   const [trendData, setTrendData] = useState({})
   const [fileDowntimeRaw, setFileDowntimeRaw] = useState({})
   const [fileSystemModesRaw, setFileSystemModesRaw] = useState({})
+  const [fileBeamEvents, setFileBeamEvents] = useState({})
 
   function extractDateFromFilename(name) {
     const match = name.match(/^(\d{4})-(\d{2})-(\d{2})/)
@@ -170,6 +170,7 @@ export default function App() {
       const powerRawEventsPerFile = {}
       const systemModesRaw = {}
       const combinedTrendData = {}
+      const beamEventsPerFile = {}
 
       for (const f of arr) {
         const {
@@ -188,6 +189,11 @@ export default function App() {
         const lines = f.text.split("\n")
         const rawPowerEvents = parsePowerEvents(lines)
         const powerIntervals = buildPowerIntervals(rawPowerEvents)
+
+        const beamEvents = parseBeamEvents(lines)
+        if (beamEvents.length > 0) {
+          beamEventsPerFile[f.name] = beamEvents
+        }
 
         if (rawPowerEvents.length > 0) powerRawEventsPerFile[f.name] = rawPowerEvents
         if (powerIntervals.length > 0) powerRaw[f.name] = powerIntervals
@@ -260,6 +266,7 @@ export default function App() {
       setFilePowerRaw(powerRaw)
       setFilePowerRawEvents(powerRawEventsPerFile)
       setTrendData(combinedTrendData)
+      setFileBeamEvents(beamEventsPerFile)
     }
 
     normalizeAndProcess().catch(err => console.error("Error while reading files:", err))
@@ -406,6 +413,7 @@ export default function App() {
                     systemModes={Object.values(fileSystemModesRaw[file] || {}).flat()}
                     powerEvents={filePowerRaw[file] || []}
                     powerRawEvents={filePowerRawEvents[file] || []}
+                    beamEvents={fileBeamEvents[file] || []}
                   />
                 </div>
               </div>
@@ -426,13 +434,14 @@ export default function App() {
             fileMachines={fileMachines}
             query={query}
             setQuery={setQuery}
+            beamEventsByFile={fileBeamEvents}
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="panel rounded-lg p-2">
-          <InterlockTable results={results} onSelect={setSelected} query={query} />
+          <InterlockTable results={results} onSelect={setSelected} query={query} setQuery={setQuery} />
         </div>
         <div className="panel rounded-lg p-2">
           <DetailTable

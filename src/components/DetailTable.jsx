@@ -54,12 +54,12 @@ export default function DetailTable({ data, showDate, fileMachines, showMachineN
   }
 
   return (
-    <div className="bg-white border rounded-2xl p-4 shadow-lg relative">
-      <div className="flex justify-between items-center mb-2 text-sm text-gray-600">
+    <div className="bg-white border rounded-2xl p-4 pt-8 shadow-lg relative">
+      <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
-          <div class="text-xl leading-tight font-semibold">
+          <div className="text-xl leading-tight font-semibold">
             <span>
-              Details for <strong class="font-bold text-blue-500">{data.id}</strong>
+              Details for <span className="font-bold text-blue-500">{data.id}</span>
             </span>
           </div>
           {interlockInfo && (
@@ -106,17 +106,17 @@ export default function DetailTable({ data, showDate, fileMachines, showMachineN
 
       <table className="w-full table-fixed">
         <thead>
-          <tr>
-            <th className="text-left py-1 w-40">
+          <tr className="text-left">
+            <th className="text-left py-2 px-4 w-48">
               {showDate ? "Date & Time" : "Time"}
             </th>
-            <th className="text-center py-1">Description</th>
+            <th className="text-center py-2 px-4">Description</th>
           </tr>
         </thead>
         <tbody>
           {sortedEntries.map((e, idx) => (
-            <tr key={idx} className="align-top">
-              <td className="py-2">
+            <tr key={idx} className="align-top hover:bg-gray-50 transition-colors">
+              <td className="py-2 px-4">
                 {e.Times.map((time, i) => {
                   const date = e.Dates?.[i]
                   const machine = fileMachines?.[e.file]
