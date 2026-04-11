@@ -13,11 +13,13 @@ import { parseLogText, parsePowerEvents, buildPowerIntervals, parseBeamEvents } 
 
 // ── Timeline legend data ──────────────────────────────────
 const TIMELINE_LEGEND = [
-  { color: "#9ca3af", label: "Default – outside working hours" },
+  { color: "#9ca3af", label: "Default – no active mode" },
   { color: "#dc2626", label: "Stop / fault (downtime)" },
   { color: "#3b82f6", label: "Clinical mode" },
-  { color: "#fb923c", label: "Service mode" },
-  { color: "#facc15", label: "Power ON event", border: true, glow: "#facc15" },
+  { color: "#C57A1C", label: "Service mode" },
+  { color: "#eab308", label: "QA mode" },
+  { color: "#ec4899", label: "SMC mode (Safe Mode Control)" },
+  { color: "#4EDFAF", label: "Power ON event",  border: true, glow: "#4EDFAF" },
   { color: "#7c3aed", label: "Power OFF event", border: true, glow: "#7c3aed" },
 ]
 
@@ -53,7 +55,7 @@ function TimelineLegendPopover({ onClose }) {
         </ul>
         <p className="text-[10px] text-gray-400 mt-3 leading-tight">
           Power events are shown as short vertical markers on the bar —
-          purple (top half) for OFF and yellow (bottom half) for ON.
+          purple (top half) for OFF and light green (bottom half) for ON.
         </p>
       </div>
     </>
@@ -396,7 +398,7 @@ export default function App() {
                         <span
                           key={i}
                           className={`mr-2 font-semibold ${
-                            e.type === "OFF" ? "text-purple-600" : "text-yellow-600"
+                            e.type === "OFF" ? "text-purple-600" : "text-emerald-600"
                           }`}
                         >
                           {e.type} {e.time}

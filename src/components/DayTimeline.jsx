@@ -1,8 +1,31 @@
 import React from "react"
 import { getEnergyColor } from "../utils/parser"
 
-const WORK_START = "07:00"
-const WORK_END   = "15:00"
+// Known mode colours. Any mode not in this map gets a hash-based colour
+// from MODE_PALETTE, so future Varian modes always render visibly.
+const MODE_COLORS = {
+  SERVICE:  "#C57A1C", // brown/orange
+  CLINICAL: "#3b82f6", // blue
+  QA:       "#eab308", // yellow
+  SMC:      "#ec4899", // pink  (Safe Mode Control – service/troubleshooting)
+}
+
+const MODE_PALETTE = [
+  "#0891b2", "#15803d", "#7c3aed",
+  "#c2410c", "#0f766e", "#4f46e5", "#b45309",
+]
+
+function hashString(str) {
+  let h = 0
+  for (let i = 0; i < str.length; i++) {
+    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0
+  }
+  return Math.abs(h)
+}
+
+function getModeColor(mode) {
+  return MODE_COLORS[mode] ?? MODE_PALETTE[hashString(mode) % MODE_PALETTE.length]
+}
 
 function timeToMinutes(t) {
   const [h, m] = t.split(":").map(Number)
@@ -33,9 +56,6 @@ export default function DayTimeline({
   const toPctSec = (sec) =>
     `${(clamp(sec, 0, DAY_SEC) / DAY_SEC) * 100}%`
 
-  const workStartMin = timeToMinutes(WORK_START)
-  const workEndMin   = timeToMinutes(WORK_END)
-
   const validBeams = beamEvents.filter(b => b.startTime)
   const mvBeams    = validBeams.filter(b => b.isMV)
   const kvBeams    = validBeams.filter(b => !b.isMV)
@@ -62,11 +82,11 @@ export default function DayTimeline({
       {/* === MAIN TIMELINE BAR === */}
       <div className="relative h-12 rounded-full overflow-hidden bg-gray-300 z-0">
 
-        {/* off-hours */}
+        {/* Layer 1 – default background (gray = no active mode) */}
         <div className="absolute top-0 bottom-0"
           style={{ left: 0, width: "100%", backgroundColor: "#9ca3af", zIndex: 1 }} />
-          
-        {/* system modes */}
+
+        {/* Layer 3 – system modes */}
         {systemModes.map((m, i) => {
           const startMin    = timeToMinutes(m.start)
           const endMin      = timeToMinutes(m.end)
@@ -76,7 +96,7 @@ export default function DayTimeline({
               style={{
                 left: toPctMin(startMin),
                 width: toPctMin(durationMin),
-                backgroundColor: m.mode === "SERVICE" ? "#fb923c" : "#3b82f6",
+                backgroundColor: getModeColor(m.mode),
                 zIndex: 3,
               }}
               title={`${m.mode} ${m.start}–${m.end}`}
@@ -84,7 +104,7 @@ export default function DayTimeline({
           )
         })}
 
-        {/* downtime */}
+        {/* Layer 4 – downtime */}
         {downtime.map((d, i) => {
           const startMin    = timeToMinutes(d.start)
           const endMin      = timeToMinutes(d.end)
@@ -102,7 +122,7 @@ export default function DayTimeline({
           )
         })}
 
-        {/* power event markers */}
+        {/* Layer 5 – power event markers */}
         {powerRawEvents.map((e, i) => {
           const min   = timeToMinutes(e.time)
           const isOff = e.type === "OFF"
@@ -115,12 +135,12 @@ export default function DayTimeline({
                 width: "4px",
                 top: isOff ? "0%" : "50%",
                 height: "50%",
-                backgroundColor: isOff ? "#7c3aed" : "#facc15",
+                backgroundColor: isOff ? "#7c3aed" : "#4EDFAF",
                 border: "1px solid rgba(0,0,0,0.6)",
                 zIndex: 5,
                 boxShadow: isOff
                   ? "0 0 8px #7c3aed, 0 0 12px #7c3aed"
-                  : "0 0 8px #facc15, 0 0 12px #facc15",
+                  : "0 0 8px #4EDFAF, 0 0 12px #4EDFAF",
               }}
               title={`🔌 Power ${e.type} ${e.time}`}
             />
@@ -132,7 +152,6 @@ export default function DayTimeline({
       {validBeams.length > 0 && (
         <div className="mt-1.5 space-y-1">
 
-          {/* MV beams */}
           {mvBeams.length > 0 && (
             <div className="flex items-center gap-1.5">
               <span className="text-[9px] text-gray-400 w-5 shrink-0 text-right">MV</span>
@@ -163,7 +182,6 @@ export default function DayTimeline({
             </div>
           )}
 
-          {/* kV imaging */}
           {kvBeams.length > 0 && (
             <div className="flex items-center gap-1.5">
               <span className="text-[9px] text-gray-400 w-5 shrink-0 text-right">kV</span>
