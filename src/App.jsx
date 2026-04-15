@@ -291,7 +291,13 @@ export default function App() {
         style={{ backgroundColor: 'var(--color-primary-dark)' }}
       >
         <header className="flex items-center justify-between p-6 max-w-[1400px] mx-auto w-full">
-          <img src="/interlock-web/bjornlogo.png" alt="favicon" className="w-56 h-24 rounded-2xl" />
+        <button onClick={() => window.location.reload()}>
+          <img
+            src={import.meta.env.BASE_URL + 'bjornlogo.png'}
+            alt="favicon"
+            className="w-56 h-24 rounded-2xl transition-transform duration-200 hover:scale-110"
+          />
+        </button>
         </header>
 
         <main className="flex flex-col items-center justify-center flex-1 w-full px-4">
