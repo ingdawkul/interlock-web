@@ -7,10 +7,18 @@ const MODE_COLORS = {
   QA:       "#eab308",
   SMC:      "#ec4899",
 }
-
+ 
 const MODE_PALETTE = [
-  "#0891b2", "#15803d", "#7c3aed",
-  "#c2410c", "#0f766e", "#4f46e5", "#b45309",
+  "#0891b2",
+  "#15803d",
+  "#7c3aed",
+  "#c2410c",
+  "#0f766e",
+  "#4f46e5",
+  "#b45309",
+  "#0e7490",
+  "#166534",
+  "#6d28d9",
 ]
 
 function hashString(str) {
@@ -21,7 +29,7 @@ function hashString(str) {
   return Math.abs(h)
 }
 
-function getModeColor(mode) {
+export function getModeColor(mode) {
   return MODE_COLORS[mode] ?? MODE_PALETTE[hashString(mode) % MODE_PALETTE.length]
 }
 

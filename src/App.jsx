@@ -4,29 +4,38 @@ import FilePicker from './components/FilePicker'
 import StatsBar from './components/StatsBar'
 import InterlockTable from './components/InterlockTable'
 import DetailTable from './components/DetailTable'
-import DayTimeline from './components/DayTimeline'
+import DayTimeline, { getModeColor } from './components/DayTimeline'
 import './theme.css'
 import InterlockSearch from "./components/InterlockSearch"
 import InterlockActionsModal from "./components/InterlockActionsModal"
 import { interlockMap } from './utils/interlockLookup'
 import { parseLogText, parsePowerEvents, buildPowerIntervals, parseBeamEvents } from './utils/parser'
 
-// ── Timeline legend data ──────────────────────────────────
-const TIMELINE_LEGEND = [
+// ── Static legend entries (always shown) ─────────────────────────────────────
+const LEGEND_STATIC = [
   { color: "#9ca3af", label: "Default – no active mode" },
   { color: "#dc2626", label: "Stop / fault (downtime)" },
-  { color: "#3b82f6", label: "Clinical mode" },
-  { color: "#C57A1C", label: "Service mode" },
-  { color: "#eab308", label: "QA mode" },
-  { color: "#ec4899", label: "SMC mode (Safe Mode Control)" },
+]
+
+// ── Static power entries (always shown at the bottom) ────────────────────────
+const LEGEND_POWER = [
   { color: "#4EDFAF", label: "Power ON event",  border: true, glow: "#4EDFAF" },
   { color: "#7c3aed", label: "Power OFF event", border: true, glow: "#7c3aed" },
 ]
 
-function TimelineLegendPopover({ onClose }) {
+// ── Mode label map for known modes ───────────────────────────────────────────
+const MODE_LABELS = {
+  SERVICE:  "Service mode",
+  CLINICAL: "Clinical mode",
+  QA:       "QA mode",
+  SMC:      "SMC mode (Safe Mode Control)",
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+function TimelineLegendPopover({ legendEntries, onClose }) {
   return (
     <>
-      {/* click-outside overlay */}
       <div className="fixed inset-0 z-40" onClick={onClose} />
       <div
         className="absolute right-0 top-8 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 z-50 w-72"
@@ -37,7 +46,7 @@ function TimelineLegendPopover({ onClose }) {
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
         </div>
         <ul className="space-y-2">
-          {TIMELINE_LEGEND.map(({ color, label, border, glow }) => (
+          {legendEntries.map(({ color, label, border, glow }) => (
             <li key={label} className="flex items-center gap-3 text-xs text-gray-700">
               <span
                 className="shrink-0 rounded-sm"
@@ -55,14 +64,14 @@ function TimelineLegendPopover({ onClose }) {
         </ul>
         <p className="text-[10px] text-gray-400 mt-3 leading-tight">
           Power events are shown as short vertical markers on the bar —
-          purple (top half) for OFF and light green (bottom half) for ON.
+          light green (bottom half) for ON and purple (top half) for OFF.
         </p>
       </div>
     </>
   )
 }
 
-// ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [rawFiles, setRawFiles] = useState([])
@@ -79,11 +88,47 @@ export default function App() {
   const [filePowerRaw, setFilePowerRaw] = useState({})
   const [filePowerRawEvents, setFilePowerRawEvents] = useState({})
   const [showTimelineLegend, setShowTimelineLegend] = useState(false)
-
   const [trendData, setTrendData] = useState({})
   const [fileDowntimeRaw, setFileDowntimeRaw] = useState({})
   const [fileSystemModesRaw, setFileSystemModesRaw] = useState({})
   const [fileBeamEvents, setFileBeamEvents] = useState({})
+
+  // ── Dynamic legend: built from modes actually present in loaded files ───────
+  const timelineLegend = useMemo(() => {
+    // Collect all unique mode names across all files, preserving first-seen order
+    const seenModes = []
+    const seenColors = new Set()
+
+    for (const modesByDate of Object.values(fileSystemModesRaw)) {
+      for (const intervals of Object.values(modesByDate)) {
+        for (const interval of intervals) {
+          if (!seenModes.includes(interval.mode)) {
+            seenModes.push(interval.mode)
+          }
+        }
+      }
+    }
+
+    // Sort: known modes first (in a fixed order), then unknown alphabetically
+    const knownOrder = ["CLINICAL", "SERVICE", "QA", "SMC"]
+    seenModes.sort((a, b) => {
+      const ia = knownOrder.indexOf(a)
+      const ib = knownOrder.indexOf(b)
+      if (ia !== -1 && ib !== -1) return ia - ib
+      if (ia !== -1) return -1
+      if (ib !== -1) return 1
+      return a.localeCompare(b)
+    })
+
+    const modeEntries = seenModes.map(mode => ({
+      color: getModeColor(mode),
+      label: MODE_LABELS[mode] ?? `${mode} mode`,
+    }))
+
+    return [...LEGEND_STATIC, ...modeEntries, ...LEGEND_POWER]
+  }, [fileSystemModesRaw])
+
+  // ─────────────────────────────────────────────────────────────────────────
 
   function extractDateFromFilename(name) {
     const match = name.match(/^(\d{4})-(\d{2})-(\d{2})/)
@@ -99,24 +144,19 @@ export default function App() {
       for (const d of intervals) {
         count++
         const start = new Date(`1970-01-01T${d.start}`)
-        const end = new Date(`1970-01-01T${d.end}`)
+        const end   = new Date(`1970-01-01T${d.end}`)
         minutes += Math.max(0, (end - start) / 1000 / 60)
       }
     }
     return { count, minutes: Math.round(minutes) }
   }
 
-  const uniqueMachineNames = useMemo(() => {
-    return new Set(Object.values(fileMachines)).size
-  }, [fileMachines])
-
-  const showMachineName = uniqueMachineNames > 1
+  const uniqueMachineNames = useMemo(() => new Set(Object.values(fileMachines)).size, [fileMachines])
+  const showMachineName    = uniqueMachineNames > 1
 
   const handleDroppedFiles = useCallback(async (fileList) => {
     const fileObjs = await Promise.all(
-      Array.from(fileList).map(f =>
-        f.text().then(txt => ({ name: f.name, text: txt }))
-      )
+      Array.from(fileList).map(f => f.text().then(txt => ({ name: f.name, text: txt })))
     )
     handleFiles(fileObjs)
   }, [])
@@ -161,45 +201,37 @@ export default function App() {
       setRawFiles(sortedNames)
 
       let combinedResults = {}
-      let total = 0
+      let total   = 0
       let matches = 0
 
-      const newInterlocks = []
-      const machines = {}
-      const downtimeStats = {}
-      const downtimeRaw = {}
-      const powerRaw = {}
-      const powerRawEventsPerFile = {}
-      const systemModesRaw = {}
-      const combinedTrendData = {}
-      const beamEventsPerFile = {}
+      const newInterlocks          = []
+      const machines               = {}
+      const downtimeStats          = {}
+      const downtimeRaw            = {}
+      const powerRaw               = {}
+      const powerRawEventsPerFile  = {}
+      const systemModesRaw         = {}
+      const combinedTrendData      = {}
+      const beamEventsPerFile      = {}
 
       for (const f of arr) {
         const {
-          results: r,
-          totalLines: t,
-          matchLines: m,
-          machineName,
-          downtimeByDate,
-          systemModesByDate,
-          trendData
+          results: r, totalLines: t, matchLines: m,
+          machineName, downtimeByDate, systemModesByDate, trendData
         } = parseLogText(f.text)
 
-        total += t
+        total   += t
         matches += m
 
-        const lines = f.text.split("\n")
+        const lines          = f.text.split("\n")
         const rawPowerEvents = parsePowerEvents(lines)
         const powerIntervals = buildPowerIntervals(rawPowerEvents)
+        const beamEvents     = parseBeamEvents(lines)
 
-        const beamEvents = parseBeamEvents(lines)
-        if (beamEvents.length > 0) {
-          beamEventsPerFile[f.name] = beamEvents
-        }
-
+        if (beamEvents.length > 0)     beamEventsPerFile[f.name]    = beamEvents
         if (rawPowerEvents.length > 0) powerRawEventsPerFile[f.name] = rawPowerEvents
-        if (powerIntervals.length > 0) powerRaw[f.name] = powerIntervals
-        if (machineName) machines[f.name] = machineName
+        if (powerIntervals.length > 0) powerRaw[f.name]             = powerIntervals
+        if (machineName)               machines[f.name]             = machineName
 
         if (trendData) {
           Object.entries(trendData).forEach(([param, points]) => {
@@ -210,7 +242,7 @@ export default function App() {
 
         if (downtimeByDate && Object.keys(downtimeByDate).length > 0) {
           downtimeStats[f.name] = calcDowntimeStats(downtimeByDate)
-          downtimeRaw[f.name] = downtimeByDate
+          downtimeRaw[f.name]   = downtimeByDate
         }
 
         if (systemModesByDate && Object.keys(systemModesByDate).length > 0) {
@@ -236,17 +268,12 @@ export default function App() {
                 break
               }
             }
-
-            if (!found) {
-              combinedResults[id].entries.push({ ...e, file: f.name })
-            }
+            if (!found) combinedResults[id].entries.push({ ...e, file: f.name })
           }
         }
       }
 
-      Object.values(combinedTrendData).forEach(arr =>
-        arr.sort((a, b) => a.timestamp - b.timestamp)
-      )
+      Object.values(combinedTrendData).forEach(arr => arr.sort((a, b) => a.timestamp - b.timestamp))
 
       const sortedRecent = newInterlocks.sort((a, b) => {
         const lastA = a.times[a.times.length - 1]
@@ -283,34 +310,24 @@ export default function App() {
 
   const showDate = rawFiles.length > 1
 
-  // ── Empty state ───────────────────────────────────────────
+  // ── Empty state ───────────────────────────────────────────────────────────
   if (rawFiles.length === 0) {
     return (
-      <div
-        className="app-container min-h-screen flex flex-col bg-primary-dark text-primary"
-        style={{ backgroundColor: 'var(--color-primary-dark)' }}
-      >
+      <div className="app-container min-h-screen flex flex-col bg-primary-dark text-primary"
+        style={{ backgroundColor: 'var(--color-primary-dark)' }}>
         <header className="flex items-center justify-between p-6 max-w-[1400px] mx-auto w-full">
-        <button onClick={() => window.location.reload()}>
-          <img
-            src={import.meta.env.BASE_URL + 'bjornlogo.png'}
-            alt="favicon"
-            className="w-56 h-24 rounded-2xl transition-transform duration-200 hover:scale-110"
-          />
-        </button>
+          <button onClick={() => window.location.reload()}>
+            <img src={import.meta.env.BASE_URL + 'bjornlogo.png'} alt="favicon"
+              className="w-56 h-24 rounded-2xl transition-transform duration-200 hover:scale-110" />
+          </button>
         </header>
-
         <main className="flex flex-col items-center justify-center flex-1 w-full px-4">
           <div className="w-full max-w-xl mx-auto mb-6">
             <InterlockSearch
               onSelect={(idOrObj) => {
-                if (idOrObj && typeof idOrObj === "object") {
-                  setSearchInterlock(idOrObj)
-                } else if (idOrObj && interlockMap[idOrObj]) {
-                  setSearchInterlock(interlockMap[idOrObj])
-                } else {
-                  console.warn("Could not find interlock for id:", idOrObj)
-                }
+                if (idOrObj && typeof idOrObj === "object") setSearchInterlock(idOrObj)
+                else if (idOrObj && interlockMap[idOrObj]) setSearchInterlock(interlockMap[idOrObj])
+                else console.warn("Could not find interlock for id:", idOrObj)
               }}
             />
           </div>
@@ -320,7 +337,6 @@ export default function App() {
             </div>
           </div>
         </main>
-
         {searchInterlock && (
           <InterlockActionsModal interlock={searchInterlock} onClose={() => setSearchInterlock(null)} />
         )}
@@ -331,19 +347,15 @@ export default function App() {
     )
   }
 
-  // ── Main app ──────────────────────────────────────────────
+  // ── Main app ──────────────────────────────────────────────────────────────
   return (
-    <div
-      className="app-container p-6 max-w-[1400px] mx-auto text-primary"
-      style={{ backgroundColor: 'var(--color-primary-dark)' }}
-    >
+    <div className="app-container p-6 max-w-[1400px] mx-auto text-primary"
+      style={{ backgroundColor: 'var(--color-primary-dark)' }}>
+
       <header className="flex items-center justify-between mb-6">
         <button onClick={() => window.location.reload()}>
-          <img
-            src={import.meta.env.BASE_URL + 'bjornlogo.png'}
-            alt="favicon"
-            className="w-56 h-24 rounded-2xl transition-transform duration-200 hover:scale-110"
-          />
+          <img src={import.meta.env.BASE_URL + 'bjornlogo.png'} alt="favicon"
+            className="w-56 h-24 rounded-2xl transition-transform duration-200 hover:scale-110" />
         </button>
         <div style={{ minWidth: 320 }}>
           <FilePicker onFiles={handleDroppedFiles} />
@@ -352,11 +364,9 @@ export default function App() {
 
       <div className="bg-white panel mb-4 border rounded-2xl p-4">
 
-        {/* ── Panel header: title + legend button ── */}
         <div className="flex justify-between items-center mb-2">
           <p className="font-semibold">Selected files:</p>
 
-          {/* Legend button – only visible when timeline is shown */}
           {showTimeline && (
             <div className="relative">
               <button
@@ -370,13 +380,15 @@ export default function App() {
               </button>
 
               {showTimelineLegend && (
-                <TimelineLegendPopover onClose={() => setShowTimelineLegend(false)} />
+                <TimelineLegendPopover
+                  legendEntries={timelineLegend}
+                  onClose={() => setShowTimelineLegend(false)}
+                />
               )}
             </div>
           )}
         </div>
 
-        {/* ── File list ── */}
         <ul className="list-none text-sm mb-6 space-y-3">
           {rawFiles.map((file, i) => (
             <li key={i}>
@@ -384,9 +396,7 @@ export default function App() {
                 <span className="font-medium">{file}</span>
 
                 {fileMachines[file] && (
-                  <span className="text-orange-500 italic font-bold">
-                    | {fileMachines[file]}
-                  </span>
+                  <span className="text-orange-500 italic font-bold">| {fileMachines[file]}</span>
                 )}
 
                 {showTimeline && fileDowntime[file] && (
@@ -401,12 +411,7 @@ export default function App() {
                     {filePowerRawEvents[file]
                       .sort((a, b) => a.time.localeCompare(b.time))
                       .map((e, i) => (
-                        <span
-                          key={i}
-                          className={`mr-2 font-semibold ${
-                            e.type === "OFF" ? "text-purple-600" : "text-emerald-600"
-                          }`}
-                        >
+                        <span key={i} className={`mr-2 font-semibold ${e.type === "OFF" ? "text-purple-600" : "text-emerald-600"}`}>
                           {e.type} {e.time}
                         </span>
                       ))}
@@ -429,7 +434,6 @@ export default function App() {
           ))}
         </ul>
 
-        {/* ── StatsBar ── */}
         <div className="flex flex-wrap items-center gap-4 mb-4 relative z-20">
           <StatsBar
             totalLines={totalLines}
