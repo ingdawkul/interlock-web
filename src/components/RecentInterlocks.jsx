@@ -199,7 +199,7 @@ export default function RecentInterlocks({ interlocks }) {
   }
 
   return (
-    <div className="flex flex-col" style={{ maxHeight: "80vh" }}>
+    <div className="flex flex-col" style={{ maxHeight: "94vh" }}>
 
       {/* Header */}
       <div className="shrink-0 mb-5">
