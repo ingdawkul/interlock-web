@@ -92,6 +92,7 @@ export default function App() {
   const [fileDowntimeRaw, setFileDowntimeRaw] = useState({})
   const [fileSystemModesRaw, setFileSystemModesRaw] = useState({})
   const [fileBeamEvents, setFileBeamEvents] = useState({})
+  const [rawLogTexts, setRawLogTexts] = useState({})
 
   // ── Dynamic legend: built from modes actually present in loaded files ───────
   const timelineLegend = useMemo(() => {
@@ -213,6 +214,7 @@ export default function App() {
       const systemModesRaw         = {}
       const combinedTrendData      = {}
       const beamEventsPerFile      = {}
+      const rawTextPerFile         = {}
 
       for (const f of arr) {
         const {
@@ -232,6 +234,7 @@ export default function App() {
         if (rawPowerEvents.length > 0) powerRawEventsPerFile[f.name] = rawPowerEvents
         if (powerIntervals.length > 0) powerRaw[f.name]             = powerIntervals
         if (machineName)               machines[f.name]             = machineName
+        rawTextPerFile[f.name] = f.text
 
         if (trendData) {
           Object.entries(trendData).forEach(([param, points]) => {
@@ -296,6 +299,7 @@ export default function App() {
       setFilePowerRawEvents(powerRawEventsPerFile)
       setTrendData(combinedTrendData)
       setFileBeamEvents(beamEventsPerFile)
+      setRawLogTexts(rawTextPerFile)
     }
 
     normalizeAndProcess().catch(err => console.error("Error while reading files:", err))
@@ -447,6 +451,7 @@ export default function App() {
             query={query}
             setQuery={setQuery}
             beamEventsByFile={fileBeamEvents}
+            rawLogTexts={rawLogTexts}  
           />
         </div>
       </div>
