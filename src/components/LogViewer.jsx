@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { parseLogForViewer, findInterestingMoments, discoverFacets, EVENT_KINDS } from "../utils/logViewerParser";
+import { parseLogForViewer, discoverFacets, EVENT_KINDS } from "../utils/logViewerParser";
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -57,11 +57,6 @@ export default function LogViewer({ rawLogTexts }) {
   const [showCatPicker,setShowCatPicker]= useState(false);
 
   // Anchors for jump-to chips
-  const anchors = useMemo(() => {
-    if (!activeFile || !rawLogTexts[activeFile]) return [];
-    return findInterestingMoments(rawLogTexts[activeFile]);
-  }, [activeFile, rawLogTexts]);
-
   // Categories and sources discovered in active file
   const facets = useMemo(() => {
     if (!activeFile || !rawLogTexts[activeFile]) return { sources: [], categories: [] };
@@ -70,11 +65,10 @@ export default function LogViewer({ rawLogTexts }) {
 
   // Reset state when file changes
   useEffect(() => {
-    if (anchors.length > 0) setCenterSec(timeToSec(anchors[0].time));
-    else setCenterSec(timeToSec("12:00:00"));
+    setCenterSec(timeToSec("12:00:00"));
     setExpanded({});
-    setEnabledCats(null);     // reset category filter
-  }, [activeFile, anchors]);
+    setEnabledCats(null);
+  }, [activeFile]);
 
   // Time window
   const halfWindow = Math.floor(windowSec / 2);
@@ -253,29 +247,6 @@ export default function LogViewer({ rawLogTexts }) {
             </div>
           </div>
 
-          {/* Row 2: anchor jump-to chips */}
-          {anchors.length > 0 && (
-            <div className="flex gap-1.5 flex-wrap items-center pt-2 border-t border-gray-200">
-              <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold mr-1">Events:</span>
-              {anchors.slice(0, 12).map((a, i) => {
-                const k = EVENT_KINDS[a.kind];
-                return (
-                  <button
-                    key={i}
-                    onClick={() => jumpTo(timeToSec(a.time))}
-                    className="px-2 py-0.5 text-[11px] rounded-md border font-mono hover:opacity-80 transition-opacity"
-                    style={{ backgroundColor: k.bg, borderColor: k.border, color: k.color }}
-                    title={`${a.label} at ${a.time}`}
-                  >
-                    {a.time.slice(0,5)} <span className="opacity-70">{a.label}</span>
-                  </button>
-                );
-              })}
-              {anchors.length > 12 && (
-                <span className="text-[10px] text-gray-400">+{anchors.length - 12} more</span>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Kind filters + category dropdown + search */}
