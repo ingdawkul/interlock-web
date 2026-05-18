@@ -11,5 +11,16 @@ export default defineConfig(({ mode }) => ({
   preview: {
     host: true,
     allowedHosts: "all"
-  }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'recharts': ['recharts'],
+          'xlsx':     ['xlsx'],
+          'react':    ['react', 'react-dom'],
+        },
+      },
+    },
+  },
 }))

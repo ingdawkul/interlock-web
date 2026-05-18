@@ -93,6 +93,9 @@ export default function App() {
   const [fileSystemModesRaw, setFileSystemModesRaw] = useState({})
   const [fileBeamEvents, setFileBeamEvents] = useState({})
   const [rawLogTexts, setRawLogTexts] = useState({})
+  const [loadProgress, setLoadProgress] = useState({
+    active: false, phase: null, current: 0, total: 0, fileName: ''
+  })
 
   // ── Dynamic legend: built from modes actually present in loaded files ───────
   const timelineLegend = useMemo(() => {
@@ -156,9 +159,41 @@ export default function App() {
   const showMachineName    = uniqueMachineNames > 1
 
   const handleDroppedFiles = useCallback(async (fileList) => {
-    const fileObjs = await Promise.all(
-      Array.from(fileList).map(f => f.text().then(txt => ({ name: f.name, text: txt })))
-    )
+    const items = Array.from(fileList)
+    if (items.length === 0) return
+
+    // FilePicker now passes { name, text } objects directly (text already extracted
+    // during its preflight read). Window-level drops still hand us raw File objects
+    // that we need to read ourselves.
+    const alreadyNormalized = items[0] && typeof items[0].text === 'string'
+
+    if (alreadyNormalized) {
+      handleFiles(items)
+      return
+    }
+
+    setLoadProgress({
+      active: true, phase: 'reading',
+      current: 0, total: items.length, fileName: items[0]?.name ?? ''
+    })
+
+    const fileObjs = []
+    for (let i = 0; i < items.length; i++) {
+      const f = items[i]
+      setLoadProgress({
+        active: true, phase: 'reading',
+        current: i, total: items.length, fileName: f.name
+      })
+      // Yield so React paints the new progress before the (potentially slow) read
+      await new Promise(r => setTimeout(r, 0))
+      try {
+        const txt = await f.text()
+        fileObjs.push({ name: f.name, text: txt })
+      } catch (e) {
+        console.warn('Failed to read file:', f.name, e)
+      }
+    }
+
     handleFiles(fileObjs)
   }, [])
 
@@ -216,7 +251,21 @@ export default function App() {
       const beamEventsPerFile      = {}
       const rawTextPerFile         = {}
 
-      for (const f of arr) {
+      setLoadProgress({
+        active: true, phase: 'parsing',
+        current: 0, total: arr.length, fileName: arr[0]?.name ?? ''
+      })
+      await new Promise(r => setTimeout(r, 0))
+
+      for (let i = 0; i < arr.length; i++) {
+        const f = arr[i]
+        setLoadProgress({
+          active: true, phase: 'parsing',
+          current: i, total: arr.length, fileName: f.name
+        })
+        // Yield to React between files so the progress bar can actually paint
+        await new Promise(r => setTimeout(r, 0))
+
         const {
           results: r, totalLines: t, matchLines: m,
           machineName, downtimeByDate, systemModesByDate, trendData
@@ -276,6 +325,12 @@ export default function App() {
         }
       }
 
+      setLoadProgress({
+        active: true, phase: 'parsing',
+        current: arr.length, total: arr.length, fileName: ''
+      })
+      await new Promise(r => setTimeout(r, 0))
+
       Object.values(combinedTrendData).forEach(arr => arr.sort((a, b) => a.timestamp - b.timestamp))
 
       const sortedRecent = newInterlocks.sort((a, b) => {
@@ -300,9 +355,13 @@ export default function App() {
       setTrendData(combinedTrendData)
       setFileBeamEvents(beamEventsPerFile)
       setRawLogTexts(rawTextPerFile)
+      setLoadProgress({ active: false, phase: null, current: 0, total: 0, fileName: '' })
     }
 
-    normalizeAndProcess().catch(err => console.error("Error while reading files:", err))
+    normalizeAndProcess().catch(err => {
+      console.error("Error while reading files:", err)
+      setLoadProgress({ active: false, phase: null, current: 0, total: 0, fileName: '' })
+    })
   }
 
   const selectedData = useMemo(() => {
@@ -337,7 +396,12 @@ export default function App() {
           </div>
           <div className="w-full px-4">
             <div className="w-full max-w-6xl mx-auto">
-              <FilePicker onFiles={handleDroppedFiles} height="50vh" />
+              <FilePicker
+                onFiles={handleDroppedFiles}
+                onProgress={setLoadProgress}
+                progress={loadProgress}
+                height="50vh"
+              />
             </div>
           </div>
         </main>
@@ -362,7 +426,11 @@ export default function App() {
             className="w-56 h-24 rounded-2xl transition-transform duration-200 hover:scale-110" />
         </button>
         <div style={{ minWidth: 320 }}>
-          <FilePicker onFiles={handleDroppedFiles} />
+          <FilePicker
+            onFiles={handleDroppedFiles}
+            onProgress={setLoadProgress}
+            progress={loadProgress}
+          />
         </div>
       </header>
 
