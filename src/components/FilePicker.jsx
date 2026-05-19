@@ -1,103 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 
-export default function FilePicker({ onFiles, onProgress, progress, height = "6vh" }) {
+export default function FilePicker({ onFiles, progress, height = "6vh" }) {
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState([]);
 
-  const retryCountRef = useRef(0);
-  const maxRetries = 30;
-  const retryDelay = 2000;
-
-  // LESER FILER SEKVENTIELLT FOR MAKS STABILITET
-  function readFilesSequentially(files, callback) {
-    let index = 0;
-    const ok = [];
-    const failed = [];
-
-    function readNext() {
-      if (index >= files.length) {
-        // Final tick so the bar visibly reaches 100% before handing off to parsing
-        onProgress?.({
-          active: true,
-          phase: "reading",
-          current: files.length,
-          total: files.length,
-          fileName: "",
-        });
-        callback(ok, failed);
-        return;
-      }
-
-      const file = files[index];
-      const reader = new FileReader(); // Sterk referanse i denne scope
-      const fileIndex = index;
-      index++;
-
-      onProgress?.({
-        active: true,
-        phase: "reading",
-        current: fileIndex,
-        total: files.length,
-        fileName: file.name,
-      });
-
-      reader.onload = () => {
-        // Pass the text along so App doesn't have to re-read the same file
-        ok.push({ name: file.name, text: reader.result });
-        readNext();
-      };
-
-      reader.onerror = () => {
-        failed.push(file);
-        readNext();
-      };
-
-      try {
-        reader.readAsText(file);
-      } catch {
-        failed.push(file);
-        readNext();
-      }
-    }
-
-    readNext();
-  }
-
-  // FULL RETRY-LOGIKK
-  function readAllWithRetry(files) {
-    retryCountRef.current = 0;
-
-    const loop = () => {
-      readFilesSequentially(files, (okFiles, failedFiles) => {
-        if (failedFiles.length === 0) {
-          // FULL SUKSESS
-          onFiles(okFiles);
-          return;
-        }
-
-        if (retryCountRef.current < maxRetries) {
-          retryCountRef.current++;
-          setTimeout(loop, retryDelay);
-        } else {
-          // RETRY FAIL — returner alt som ble OK
-          console.warn(
-            "Failed to read any files after all retry attempts:",
-            failedFiles.map((f) => f.name)
-          );
-          onFiles(okFiles);
-        }
-      });
-    };
-
-    loop();
-  }
-
-  // UI HANDLERS
   const handleInputChange = (e) => {
     if (!e.target.files) return;
-    const files = Array.from(e.target.files);
-    setSelectedFiles(files);
-    readAllWithRetry(files);
+    onFiles(Array.from(e.target.files));
   };
 
   const handleDragOver = (e) => {
@@ -112,9 +20,7 @@ export default function FilePicker({ onFiles, onProgress, progress, height = "6v
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files?.length) {
-      const files = Array.from(e.dataTransfer.files);
-      setSelectedFiles(files);
-      readAllWithRetry(files);
+      onFiles(Array.from(e.dataTransfer.files));
     }
   };
 

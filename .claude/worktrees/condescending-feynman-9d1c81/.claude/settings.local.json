@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/ing/Documents/interlock-web/**)",
+      "Bash(npm run *)",
+      "Bash(git -C \"/c/Users/ing/Documents/interlock-web\" status --short src/)"
+    ]
+  }
+}

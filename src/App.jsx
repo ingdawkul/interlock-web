@@ -8,8 +8,10 @@ import DayTimeline, { getModeColor } from './components/DayTimeline'
 import './theme.css'
 import InterlockSearch from "./components/InterlockSearch"
 import InterlockActionsModal from "./components/InterlockActionsModal"
+import FailedFilesModal from "./components/FailedFilesModal"
 import { interlockMap } from './utils/interlockLookup'
 import { parseLogText, parsePowerEvents, buildPowerIntervals, parseBeamEvents } from './utils/parser'
+import { readFilesSequentially } from './utils/fileReader'
 
 // ── Static legend entries (always shown) ─────────────────────────────────────
 const LEGEND_STATIC = [
@@ -96,6 +98,13 @@ export default function App() {
   const [loadProgress, setLoadProgress] = useState({
     active: false, phase: null, current: 0, total: 0, fileName: ''
   })
+  // When some files fail to read (e.g. TrueBeam locking today's log), we pause
+  // and let the user decide via FailedFilesModal. ok = successful reads so far,
+  // failed = File objects that still need a decision.
+  const [pendingRead, setPendingRead] = useState(null)
+
+  const clearProgress = () =>
+    setLoadProgress({ active: false, phase: null, current: 0, total: 0, fileName: '' })
 
   // ── Dynamic legend: built from modes actually present in loaded files ───────
   const timelineLegend = useMemo(() => {
@@ -162,11 +171,9 @@ export default function App() {
     const items = Array.from(fileList)
     if (items.length === 0) return
 
-    // FilePicker now passes { name, text } objects directly (text already extracted
-    // during its preflight read). Window-level drops still hand us raw File objects
-    // that we need to read ourselves.
+    // External callers may already pass normalized { name, text } objects —
+    // pass those straight through to parsing.
     const alreadyNormalized = items[0] && typeof items[0].text === 'string'
-
     if (alreadyNormalized) {
       handleFiles(items)
       return
@@ -177,24 +184,51 @@ export default function App() {
       current: 0, total: items.length, fileName: items[0]?.name ?? ''
     })
 
-    const fileObjs = []
-    for (let i = 0; i < items.length; i++) {
-      const f = items[i]
-      setLoadProgress({
-        active: true, phase: 'reading',
-        current: i, total: items.length, fileName: f.name
-      })
-      // Yield so React paints the new progress before the (potentially slow) read
-      await new Promise(r => setTimeout(r, 0))
-      try {
-        const txt = await f.text()
-        fileObjs.push({ name: f.name, text: txt })
-      } catch (e) {
-        console.warn('Failed to read file:', f.name, e)
-      }
+    const { ok, failed } = await readFilesSequentially(items, { onProgress: setLoadProgress })
+
+    if (failed.length > 0) {
+      // Pause here and let the user decide. The modal renders based on pendingRead.
+      clearProgress()
+      setPendingRead({ ok, failed })
+      return
     }
 
-    handleFiles(fileObjs)
+    handleFiles(ok)
+  }, [])
+
+  const handleRetryFailed = useCallback(async () => {
+    if (!pendingRead) return
+    const { ok: prevOk, failed: prevFailed } = pendingRead
+    setPendingRead(null)
+
+    setLoadProgress({
+      active: true, phase: 'reading',
+      current: 0, total: prevFailed.length, fileName: prevFailed[0]?.name ?? ''
+    })
+
+    const { ok: newOk, failed: newFailed } = await readFilesSequentially(prevFailed, { onProgress: setLoadProgress })
+    const combinedOk = [...prevOk, ...newOk]
+
+    if (newFailed.length > 0) {
+      clearProgress()
+      setPendingRead({ ok: combinedOk, failed: newFailed })
+      return
+    }
+
+    handleFiles(combinedOk)
+  }, [pendingRead])
+
+  const handleSkipFailed = useCallback(() => {
+    if (!pendingRead) return
+    const okFiles = pendingRead.ok
+    setPendingRead(null)
+    if (okFiles.length > 0) handleFiles(okFiles)
+    else clearProgress()
+  }, [pendingRead])
+
+  const handleCancelLoad = useCallback(() => {
+    setPendingRead(null)
+    clearProgress()
   }, [])
 
   useEffect(() => {
@@ -398,7 +432,6 @@ export default function App() {
             <div className="w-full max-w-6xl mx-auto">
               <FilePicker
                 onFiles={handleDroppedFiles}
-                onProgress={setLoadProgress}
                 progress={loadProgress}
                 height="50vh"
               />
@@ -407,6 +440,15 @@ export default function App() {
         </main>
         {searchInterlock && (
           <InterlockActionsModal interlock={searchInterlock} onClose={() => setSearchInterlock(null)} />
+        )}
+        {pendingRead && (
+          <FailedFilesModal
+            failed={pendingRead.failed}
+            okCount={pendingRead.ok.length}
+            onRetry={handleRetryFailed}
+            onSkip={handleSkipFailed}
+            onCancel={handleCancelLoad}
+          />
         )}
         <footer className="text-center text-xs text-gray-400 mt-6 pb-2 opacity-70">
           © {new Date().getFullYear()} OUS AMF ING. All rights reserved.
@@ -428,7 +470,6 @@ export default function App() {
         <div style={{ minWidth: 320 }}>
           <FilePicker
             onFiles={handleDroppedFiles}
-            onProgress={setLoadProgress}
             progress={loadProgress}
           />
         </div>
@@ -540,6 +581,16 @@ export default function App() {
 
       {searchInterlock && (
         <InterlockActionsModal interlock={searchInterlock} onClose={() => setSearchInterlock(null)} />
+      )}
+
+      {pendingRead && (
+        <FailedFilesModal
+          failed={pendingRead.failed}
+          okCount={pendingRead.ok.length}
+          onRetry={handleRetryFailed}
+          onSkip={handleSkipFailed}
+          onCancel={handleCancelLoad}
+        />
       )}
 
       <footer className="text-center text-xs text-gray-400 mt-6 pb-2 opacity-70">
