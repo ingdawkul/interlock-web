@@ -41,11 +41,18 @@ export default function InterlockSearch({ onSelect }) {
                 setOpen(false);
                 setValue("");
               }}
-              className="flex justify-between items-center px-3 py-2 cursor-pointer hover:bg-gray-100"
+              className="flex justify-between items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100"
             >
-              <span>{i.Interlock}</span>
+              <span className="flex items-center gap-2 min-w-0">
+                <span className="font-medium">{i.Interlock}</span>
+                {i.Controller && (
+                  <span className="text-[11px] text-slate-600 bg-slate-100 ring-1 ring-slate-200 rounded-full px-2 py-0.5 shrink-0">
+                    {i.Controller}
+                  </span>
+                )}
+              </span>
               <span
-                className={`text-xs text-white px-2 py-1 rounded-full ${severityColor[i.severity]}`}
+                className={`text-xs text-white px-2 py-1 rounded-full shrink-0 ${severityColor[i.severity]}`}
               >
                 {severityLabel[i.severity]}
               </span>
