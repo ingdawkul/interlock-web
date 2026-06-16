@@ -3,7 +3,14 @@
     "allow": [
       "Read(//c/Users/ing/Documents/interlock-web/**)",
       "Bash(npm run *)",
-      "Bash(git -C \"/c/Users/ing/Documents/interlock-web\" status --short src/)"
+      "Bash(git -C \"/c/Users/ing/Documents/interlock-web\" status --short src/)",
+      "Bash(cd \"/c/Users/ing/Desktop/Drammen testday/SB2 6677\" && echo \"=== sizes ===\" && ls -la *.txt && echo \"\" && echo \"=== line counts ===\" && wc -l \"2026-06-02-Combined.txt\" \"2026-06-03-Combined.txt\")",
+      "Read(//c/Users/ing/AppData/Local/Temp/**)",
+      "Bash(cp \"/c/Users/ing/Documents/interlock-web/src/utils/parser.js\" parser_new.mjs)",
+      "Bash(node -e ' *)",
+      "Bash(node -e 'import\\(\"fs\"\\).then\\(async fs=>{const NEW=await import\\(\"./parser_new.mjs\"\\);for\\(const f of [\"2026-06-02\",\"2026-06-03\"]\\){const n=NEW.parseLogText\\(fs.readFileSync\\(`C:/Users/ing/Desktop/Drammen testday/SB2 6677/${f}-Combined.txt`,\"utf8\"\\)\\);const faultStarts=n.faultIntervals.filter\\(iv=>iv.start\\).length;console.log\\(`${f}: faultIntervals=${n.faultIntervals.length} \\(with start=${faultStarts}\\) orphanRemovals=${n.orphanRemovals.length} matchLines=${n.matchLines}`\\);}}\\);')",
+      "mcp__visualize__show_widget",
+      "Bash(cd \"/c/Users/ing/Desktop\"; echo \"=== new machine \\(Drammen day2\\) HIPAA Login Primary User count ===\"; grep -c 'HIPAALogging: User\\\\[[^]]*\\\\], Comment\\\\[\"Login Primary User\"\\\\]' \"Drammen testday/SB2 6677/2026-06-03-Combined.txt\"; echo \"=== new machine Invoking-task login count ===\"; grep -cE \"Invoking task \\\\w+ using Login Technique\" \"Drammen testday/SB2 6677/2026-06-03-Combined.txt\"; echo \"=== older machine \\(SN1679\\) HIPAA Login times ===\"; grep -oE \"^[0-9-]+\\\\t[0-9:]+.*Comment\\\\[\\\\\"Login Primary User\\\\\"\\\\]\" \"Samme logs ulike maskiner/2025-12-30-Combined5.txt\" | grep -oE \"\\\\t[0-9:]+\\\\t.*User\\\\[[^]]*\\\\]\" | sed -E 's/\\\\t\\([0-9:]+\\)\\\\t.*User\\\\[\\([^]]*\\)\\\\].*/\\\\1 user=\\\\2/' | head)"
     ]
   }
 }

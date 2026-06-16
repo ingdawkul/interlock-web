@@ -4,26 +4,15 @@ import FilePicker from './components/FilePicker'
 import StatsBar from './components/StatsBar'
 import InterlockTable from './components/InterlockTable'
 import DetailTable from './components/DetailTable'
-import DayTimeline, { getModeColor } from './components/DayTimeline'
+import DayTimeline, { getModeColor, OTHER_MODE_COLOR, KNOWN_MODES, appColor } from './components/DayTimeline'
 import './theme.css'
 import InterlockSearch from "./components/InterlockSearch"
 import InterlockActionsModal from "./components/InterlockActionsModal"
 import FailedFilesModal from "./components/FailedFilesModal"
+import NetworkEventsModal from "./components/NetworkEventsModal"
 import { interlockMap } from './utils/interlockLookup'
 import { parseLogText, parsePowerEvents, buildPowerIntervals, parseBeamEvents } from './utils/parser'
 import { readFilesSequentially } from './utils/fileReader'
-
-// ── Static legend entries (always shown) ─────────────────────────────────────
-const LEGEND_STATIC = [
-  { color: "#9ca3af", label: "Default – no active mode" },
-  { color: "#dc2626", label: "Stop / fault (downtime)" },
-]
-
-// ── Static power entries (always shown at the bottom) ────────────────────────
-const LEGEND_POWER = [
-  { color: "#4EDFAF", label: "Power ON event",  border: true, glow: "#4EDFAF" },
-  { color: "#7c3aed", label: "Power OFF event", border: true, glow: "#7c3aed" },
-]
 
 // ── Mode label map for known modes ───────────────────────────────────────────
 const MODE_LABELS = {
@@ -31,49 +20,93 @@ const MODE_LABELS = {
   CLINICAL: "Clinical mode",
   QA:       "QA mode",
   SMC:      "SMC mode (Safe Mode Control)",
+  PMI:      "PMI mode (preventive maintenance)",
+  INSTALL:  "Install mode",
 }
+const MODE_ORDER = ["CLINICAL", "SERVICE", "QA", "SMC", "PMI", "INSTALL"]
+
+// Fixed legend sections for the extra timeline rows.
+const STATE_LEGEND = [
+  { color: "#16a34a", label: "ON" },
+  { color: "#d97706", label: "STANDBY" },
+  { color: "#dc2626", label: "POWEROFF" },
+]
+const MARKER_LEGEND = [
+  { color: "#4EDFAF", label: "Power ON",  border: true, glow: "#4EDFAF" },
+  { color: "#7c3aed", label: "Power OFF", border: true, glow: "#7c3aed" },
+  { color: "#16a34a", label: "Login",     thin: true },
+]
+const FAULT_LEGEND = [
+  { color: "rgba(220,38,38,0.75)", label: "Fault density (click row: heatmap ⇄ sparkline)" },
+]
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-function TimelineLegendPopover({ legendEntries, onClose }) {
+function LegendSwatch({ color, border, glow, thin }) {
+  return (
+    <span
+      className="shrink-0 rounded-sm"
+      style={{
+        width: thin ? 4 : 18, height: 14,
+        backgroundColor: color,
+        border: border ? "1px solid rgba(0,0,0,0.3)" : "none",
+        boxShadow: glow ? `0 0 6px ${glow}` : "none",
+        display: "inline-block",
+        marginLeft: thin ? 7 : 0, marginRight: thin ? 7 : 0,
+      }}
+    />
+  )
+}
+
+function TimelineLegendPopover({ sections, onClose }) {
   return (
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} />
       <div
-        className="absolute right-0 top-8 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 z-50 w-72"
+        className="absolute right-0 top-8 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 z-50 w-72 max-h-[70vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-3">
           <span className="font-semibold text-sm text-gray-800">Timeline legend</span>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
         </div>
-        <ul className="space-y-2">
-          {legendEntries.map(({ color, label, border, glow }) => (
-            <li key={label} className="flex items-center gap-3 text-xs text-gray-700">
-              <span
-                className="shrink-0 rounded-sm"
-                style={{
-                  width: 18, height: 14,
-                  backgroundColor: color,
-                  border: border ? "1px solid rgba(0,0,0,0.3)" : "none",
-                  boxShadow: glow ? `0 0 6px ${glow}` : "none",
-                  display: "inline-block"
-                }}
-              />
-              {label}
-            </li>
+        <div className="space-y-3">
+          {sections.map(({ title, entries }) => (
+            <div key={title}>
+              <div className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold mb-1.5">{title}</div>
+              <ul className="space-y-1.5">
+                {entries.map((e) => (
+                  <li key={e.label} className="flex items-center gap-2 text-xs text-gray-700">
+                    <LegendSwatch {...e} />
+                    {e.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
-        <p className="text-[10px] text-gray-400 mt-3 leading-tight">
-          Power events are shown as short vertical markers on the bar —
-          light green (bottom half) for ON and purple (top half) for OFF.
-        </p>
+        </div>
       </div>
     </>
   )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+
+function AppFooter({ dark, onToggleDark }) {
+  return (
+    <footer className="text-center text-xs text-gray-400 mt-6 pb-4 opacity-80">
+      <div>© {new Date().getFullYear()} OUS AMF ING. All rights reserved.</div>
+      <div className="mt-0.5 italic">Designed and made by Dawid Kuleczko</div>
+      <button
+        onClick={onToggleDark}
+        className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-100 transition-colors"
+        aria-label="Toggle dark mode"
+      >
+        {dark ? "☀️ Light mode" : "🌙 Dark mode"}
+      </button>
+    </footer>
+  )
+}
 
 export default function App() {
   const [rawFiles, setRawFiles] = useState([])
@@ -95,6 +128,17 @@ export default function App() {
   const [fileSystemModesRaw, setFileSystemModesRaw] = useState({})
   const [fileBeamEvents, setFileBeamEvents] = useState({})
   const [rawLogTexts, setRawLogTexts] = useState({})
+  const [fileNetwork, setFileNetwork] = useState({})   // Modules 2-5: per-file event bundle
+  const [showNetworkModal, setShowNetworkModal] = useState(false)
+  const [dark, setDark] = useState(() => {
+    try { return localStorage.getItem('theme') === 'dark' } catch { return false }
+  })
+  const [networkInitial, setNetworkInitial] = useState({ tab: null, file: null })
+
+  const openEventsModal = (initial = { tab: null, file: null }) => {
+    setNetworkInitial(initial)
+    setShowNetworkModal(true)
+  }
   const [loadProgress, setLoadProgress] = useState({
     active: false, phase: null, current: 0, total: 0, fileName: ''
   })
@@ -106,40 +150,47 @@ export default function App() {
   const clearProgress = () =>
     setLoadProgress({ active: false, phase: null, current: 0, total: 0, fileName: '' })
 
-  // ── Dynamic legend: built from modes actually present in loaded files ───────
-  const timelineLegend = useMemo(() => {
-    // Collect all unique mode names across all files, preserving first-seen order
-    const seenModes = []
-    const seenColors = new Set()
+  // Apply + persist the colour theme
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', dark)
+    try { localStorage.setItem('theme', dark ? 'dark' : 'light') } catch {}
+  }, [dark])
 
-    for (const modesByDate of Object.values(fileSystemModesRaw)) {
+  // ── Dynamic legend: the main bar shows login-app sessions where logged, else
+  //    system modes. Collect whichever the loaded files actually render. ────────
+  const timelineLegend = useMemo(() => {
+    // Login apps (newer software) — these colour the main bar as sessions
+    const apps = new Set()
+    for (const bundle of Object.values(fileNetwork)) {
+      for (const l of (bundle.logins || [])) if (l.source === "task") apps.add(l.app)
+    }
+
+    // Modes from files WITHOUT app-based logins (the mode-fallback bar)
+    const modes = new Set()
+    for (const [fname, modesByDate] of Object.entries(fileSystemModesRaw)) {
+      const bundle = fileNetwork[fname]
+      const hasApp = bundle && (bundle.logins || []).some(l => l.source === "task")
+      if (hasApp) continue
       for (const intervals of Object.values(modesByDate)) {
-        for (const interval of intervals) {
-          if (!seenModes.includes(interval.mode)) {
-            seenModes.push(interval.mode)
-          }
-        }
+        for (const interval of intervals) modes.add(interval.mode)
       }
     }
 
-    // Sort: known modes first (in a fixed order), then unknown alphabetically
-    const knownOrder = ["CLINICAL", "SERVICE", "QA", "SMC"]
-    seenModes.sort((a, b) => {
-      const ia = knownOrder.indexOf(a)
-      const ib = knownOrder.indexOf(b)
-      if (ia !== -1 && ib !== -1) return ia - ib
-      if (ia !== -1) return -1
-      if (ib !== -1) return 1
-      return a.localeCompare(b)
-    })
+    const mainEntries = [{ color: "#9ca3af", label: "No active session / mode" }]
+    for (const app of [...apps].sort()) mainEntries.push({ color: appColor(app), label: app })
+    const knownModes = [...modes].filter(m => KNOWN_MODES.includes(m))
+      .sort((a, b) => MODE_ORDER.indexOf(a) - MODE_ORDER.indexOf(b))
+    const unknownModes = [...modes].filter(m => !KNOWN_MODES.includes(m))
+    for (const m of knownModes) mainEntries.push({ color: getModeColor(m), label: MODE_LABELS[m] ?? `${m} mode` })
+    if (unknownModes.length) mainEntries.push({ color: OTHER_MODE_COLOR, label: `Other / unknown (${unknownModes.join(", ")})` })
 
-    const modeEntries = seenModes.map(mode => ({
-      color: getModeColor(mode),
-      label: MODE_LABELS[mode] ?? `${mode} mode`,
-    }))
-
-    return [...LEGEND_STATIC, ...modeEntries, ...LEGEND_POWER]
-  }, [fileSystemModesRaw])
+    return [
+      { title: "Main bar (sessions / modes)", entries: mainEntries },
+      { title: "Machine state", entries: STATE_LEGEND },
+      { title: "Markers", entries: MARKER_LEGEND },
+      { title: "Faults", entries: FAULT_LEGEND },
+    ]
+  }, [fileSystemModesRaw, fileNetwork])
 
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -284,6 +335,7 @@ export default function App() {
       const combinedTrendData      = {}
       const beamEventsPerFile      = {}
       const rawTextPerFile         = {}
+      const networkPerFile         = {}
 
       setLoadProgress({
         active: true, phase: 'parsing',
@@ -302,11 +354,65 @@ export default function App() {
 
         const {
           results: r, totalLines: t, matchLines: m,
-          machineName, downtimeByDate, systemModesByDate, trendData
+          machineName, downtimeByDate, systemModesByDate, trendData, parkedAt,
+          nodeEvents, nodeDisconnects, heartbeatLosses, coldStarts, silenceGaps,
+          cbctDowns, exioEvents, imagingPsuEvents, irmEvents,
+          stateEvents, machineStates, modeUpAttempts, modeUpLatencies, pelEvents, warmupDelays,
+          powerLossIntervals, emoEvents, flappingGroups, cbHits,
+          logins, failedLogins, restarts, planLoads,
+          faultIntervals, orphanRemovals
         } = parseLogText(f.text)
+
+        // Flatten fault raise/removal events for the faults density timeline
+        const faultEvents = [
+          ...(faultIntervals || []).filter(iv => iv.start).map(iv => ({ time: iv.start, id: iv.id })),
+          ...(orphanRemovals || []).map(o => ({ time: o.time, id: o.id })),
+        ]
 
         total   += t
         matches += m
+
+        // Modules 2 & 3: keep the per-file event bundle if anything was found
+        const hasNetwork = (nodeEvents && nodeEvents.length) || (silenceGaps && silenceGaps.length) ||
+            (coldStarts && coldStarts.length) || (heartbeatLosses && heartbeatLosses.length) ||
+            (cbctDowns && cbctDowns.length) || (exioEvents && exioEvents.length) ||
+            (imagingPsuEvents && imagingPsuEvents.length) || (irmEvents && irmEvents.length)
+        const hasState = (machineStates && machineStates.length) || (pelEvents && pelEvents.length) ||
+            (modeUpAttempts && modeUpAttempts.length)
+        const hasPower = (powerLossIntervals && powerLossIntervals.length) || (emoEvents && emoEvents.length) ||
+            (cbHits && cbHits.length)
+        const hasSession = (logins && logins.length) || (failedLogins && failedLogins.length) ||
+            (restarts && restarts.length)
+        const hasFaults = faultEvents.length > 0
+        if (hasNetwork || hasState || hasPower || hasSession || hasFaults) {
+          networkPerFile[f.name] = {
+            nodeEvents: nodeEvents || [],
+            nodeDisconnects: nodeDisconnects || [],
+            heartbeatLosses: heartbeatLosses || [],
+            coldStarts: coldStarts || [],
+            silenceGaps: silenceGaps || [],
+            cbctDowns: cbctDowns || [],
+            exioEvents: exioEvents || [],
+            imagingPsuEvents: imagingPsuEvents || [],
+            irmEvents: irmEvents || [],
+            stateEvents: stateEvents || [],
+            machineStates: machineStates || [],
+            modeUpAttempts: modeUpAttempts || [],
+            modeUpLatencies: modeUpLatencies || [],
+            pelEvents: pelEvents || [],
+            warmupDelays: warmupDelays || [],
+            powerLossIntervals: powerLossIntervals || [],
+            emoEvents: emoEvents || [],
+            flappingGroups: flappingGroups || [],
+            cbHits: cbHits || [],
+            logins: logins || [],
+            failedLogins: failedLogins || [],
+            restarts: restarts || [],
+            planLoads: planLoads || [],
+            faultEvents,
+            parkedAt
+          }
+        }
 
         const lines          = f.text.split("\n")
         const rawPowerEvents = parsePowerEvents(lines)
@@ -389,6 +495,7 @@ export default function App() {
       setTrendData(combinedTrendData)
       setFileBeamEvents(beamEventsPerFile)
       setRawLogTexts(rawTextPerFile)
+      setFileNetwork(networkPerFile)
       setLoadProgress({ active: false, phase: null, current: 0, total: 0, fileName: '' })
     }
 
@@ -450,9 +557,7 @@ export default function App() {
             onCancel={handleCancelLoad}
           />
         )}
-        <footer className="text-center text-xs text-gray-400 mt-6 pb-2 opacity-70">
-          © {new Date().getFullYear()} OUS AMF ING. All rights reserved.
-        </footer>
+        <AppFooter dark={dark} onToggleDark={() => setDark(d => !d)} />
       </div>
     )
   }
@@ -494,7 +599,7 @@ export default function App() {
 
               {showTimelineLegend && (
                 <TimelineLegendPopover
-                  legendEntries={timelineLegend}
+                  sections={timelineLegend}
                   onClose={() => setShowTimelineLegend(false)}
                 />
               )}
@@ -512,9 +617,9 @@ export default function App() {
                   <span className="text-orange-500 italic font-bold">| {fileMachines[file]}</span>
                 )}
 
-                {showTimeline && fileDowntime[file] && (
-                  <span className="text-red-600 font-semibold">
-                    | {fileDowntime[file].count} STOP ({fileDowntime[file].minutes} min)
+                {showTimeline && fileNetwork[file]?.planLoads?.length > 0 && (
+                  <span className="text-blue-600 font-semibold">
+                    | {fileNetwork[file].planLoads.length} plan{fileNetwork[file].planLoads.length !== 1 ? "s" : ""}
                   </span>
                 )}
 
@@ -540,12 +645,27 @@ export default function App() {
                     powerEvents={filePowerRaw[file] || []}
                     powerRawEvents={filePowerRawEvents[file] || []}
                     beamEvents={fileBeamEvents[file] || []}
+                    machineStates={fileNetwork[file]?.machineStates || []}
+                    logins={fileNetwork[file]?.logins || []}
+                    faultEvents={fileNetwork[file]?.faultEvents || []}
+                    planLoads={fileNetwork[file]?.planLoads || []}
+                    dayEnd={fileNetwork[file]?.parkedAt}
+                    onOpenSessions={() => openEventsModal({ tab: 'session', file })}
                   />
                 </div>
               </div>
             </li>
           ))}
         </ul>
+
+        {/* Analysis stats — grouped with the loaded files (above the action buttons) */}
+        <div className="flex items-center flex-wrap gap-x-2.5 gap-y-1 text-xs text-gray-600 mb-5 border-t pt-3">
+          <span><span className="font-semibold text-gray-900">{totalLines.toLocaleString()}</span> lines</span>
+          <span className="text-gray-400 font-bold text-base leading-none">•</span>
+          <span><span className="font-semibold text-gray-900">{matchLines.toLocaleString()}</span> interlocks</span>
+          <span className="text-gray-400 font-bold text-base leading-none">•</span>
+          <span><span className="font-semibold text-gray-900">{Object.keys(results).length.toLocaleString()}</span> unique interlocks</span>
+        </div>
 
         <div className="flex flex-wrap items-center gap-4 mb-4 relative z-20">
           <StatsBar
@@ -560,7 +680,9 @@ export default function App() {
             query={query}
             setQuery={setQuery}
             beamEventsByFile={fileBeamEvents}
-            rawLogTexts={rawLogTexts}  
+            rawLogTexts={rawLogTexts}
+            hasDiagnostics={Object.keys(fileNetwork).length > 0}
+            onOpenDiagnostics={() => openEventsModal()}
           />
         </div>
       </div>
@@ -593,9 +715,16 @@ export default function App() {
         />
       )}
 
-      <footer className="text-center text-xs text-gray-400 mt-6 pb-2 opacity-70">
-        © {new Date().getFullYear()} OUS AMF ING. All rights reserved.
-      </footer>
+      {showNetworkModal && (
+        <NetworkEventsModal
+          fileNetwork={fileNetwork}
+          initialTab={networkInitial.tab}
+          initialFile={networkInitial.file}
+          onClose={() => setShowNetworkModal(false)}
+        />
+      )}
+
+      <AppFooter dark={dark} onToggleDark={() => setDark(d => !d)} />
     </div>
   )
 }

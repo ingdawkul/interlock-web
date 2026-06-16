@@ -46,16 +46,20 @@ function Chip({ label, color }) {
 export default function BeamViewer({ beamEventsByFile, fileMachines, onClose }) {
   const [showKV,            setShowKV]            = useState(false)
   const [selectedEnergies,  setSelectedEnergies]  = useState(null) // null = all
+  const [selectedFile,      setSelectedFile]      = useState("ALL") // "ALL" or a filename
 
-  // Flatten all beams, attach machine name
+  const files = useMemo(() => Object.keys(beamEventsByFile || {}).sort((a, b) => b.localeCompare(a)), [beamEventsByFile])
+
+  // Flatten beams (all files, or the selected one), attach machine name
   const allBeams = useMemo(() => {
     const result = []
     for (const [file, beams] of Object.entries(beamEventsByFile || {})) {
+      if (selectedFile !== "ALL" && file !== selectedFile) continue
       const machine = fileMachines?.[file] ?? file
       for (const b of beams) result.push({ ...b, machine })
     }
     return result
-  }, [beamEventsByFile, fileMachines])
+  }, [beamEventsByFile, fileMachines, selectedFile])
 
   const mvBeams = useMemo(() => allBeams.filter(b => b.isMV),  [allBeams])
   const kvBeams = useMemo(() => allBeams.filter(b => !b.isMV), [allBeams])
@@ -147,6 +151,23 @@ export default function BeamViewer({ beamEventsByFile, fileMachines, onClose }) 
             ✕
           </button>
         </div>
+
+        {/* File selector — ALL + per-file, click through like Recent interlocks */}
+        {files.length > 1 && (
+          <div className="flex gap-2 flex-wrap mb-4 shrink-0">
+            {["ALL", ...files].map((f) => (
+              <button key={f}
+                onClick={() => { setSelectedFile(f); setSelectedEnergies(null) }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
+                  f === selectedFile
+                    ? "bg-gray-800 text-white border-gray-800"
+                    : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                }`}>
+                {f === "ALL" ? "All files" : f}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="overflow-y-auto flex-1 pr-1">
 

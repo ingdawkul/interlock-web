@@ -5,6 +5,11 @@ import Report from './Report';
 import BeamViewer from './Beamviewer';
 import LogViewer from './LogViewer';
 
+// One uniform style for every modal-opening button.
+const BTN =
+  "px-4 py-2.5 rounded-2xl border border-indigo-500 bg-indigo-50 hover:bg-indigo-100 " +
+  "text-indigo-700 font-semibold text-sm flex items-center gap-2 whitespace-nowrap transition-colors";
+
 export default function StatsBar({
   totalLines,
   matches,
@@ -15,7 +20,9 @@ export default function StatsBar({
   setShowTimeline,
   fileMachines,
   beamEventsByFile,
-  rawLogTexts,        // ← new prop: { filename: rawText }
+  rawLogTexts,        // ← { filename: rawText }
+  hasDiagnostics,
+  onOpenDiagnostics,
 }) {
   const [showInterlocks, setShowInterlocks] = useState(false);
   const [showTrends,     setShowTrends]     = useState(false);
@@ -41,30 +48,34 @@ export default function StatsBar({
   const hasLogs = rawLogTexts && Object.keys(rawLogTexts).length > 0;
 
   return (
-    <div className="flex flex-wrap gap-4 items-center text-sm w-full">
-      <div className="px-4 py-3 rounded-2xl border bg-gray-200 shadow-sm inline-flex items-center gap-2">
-        <span className="text-sm text-gray-800">Lines</span>
-        <span className="text-sm font-semibold">{totalLines}</span>
+    <div className="w-full">
+      {/* ── Modal buttons — one row on desktop, wraps only when too narrow ──── */}
+      <div className="flex flex-wrap gap-2 items-center">
+        <button className={BTN} onClick={() => setShowInterlocks(true)}>⚠️ Recent interlocks</button>
+        <button className={BTN} onClick={() => { setTrendInitialParam(null); setShowTrends(true); }}>⚙️ Controllers</button>
+        <button className={BTN} onClick={() => setShowTimeline(prev => !prev)}>
+          {showTimeline ? '⏱️ Hide timeline' : '⏱️ Show timeline'}
+        </button>
+        {hasDiagnostics && (
+          <button className={BTN} onClick={onOpenDiagnostics}
+            title="Node, network, machine-state, power/EMO, faults and sessions">
+            🔍 Diagnostics
+          </button>
+        )}
+        {totalMVBeams > 0 && (
+          <button className={BTN} onClick={() => setShowBeams(true)}>
+            ⚡ Beams <span className="text-xs bg-indigo-200 text-indigo-800 px-1.5 py-0.5 rounded-full">{totalMVBeams}</span>
+          </button>
+        )}
+        <button className={BTN} onClick={() => setShowReport(true)}>📄 Report</button>
+        {hasLogs && (
+          <button className={BTN} onClick={() => setShowLog(true)} title="Browse raw log activity in a time window">
+            📋 Log
+          </button>
+        )}
       </div>
 
-      <div className="px-4 py-3 rounded-2xl border bg-gray-200 shadow-sm inline-flex items-center gap-2">
-        <span className="text-sm  text-gray-800">Interlocks</span>
-        <span className="text-sm font-semibold">{matches}</span>
-      </div>
-
-      <div className="px-4 py-3 rounded-2xl border bg-gray-200 shadow-sm inline-flex items-center gap-2">
-        <span className="text-sm text-gray-800">Unique Interlocks</span>
-        <span className="text-sm font-semibold">{uniqueCount}</span>
-      </div>
-
-      {/* ── Recent interlocks ── */}
-      <button
-        className="px-4 py-3 rounded-2xl border border-indigo-500 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold flex items-center gap-2"
-        onClick={() => setShowInterlocks(true)}
-      >
-        ⚠️ Recent interlocks
-      </button>
-
+      {/* ── Modals ─────────────────────────────────────────────────────────── */}
       {showInterlocks && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white rounded-2xl shadow-lg relative flex flex-col"
@@ -77,14 +88,6 @@ export default function StatsBar({
           </div>
         </div>
       )}
-
-      {/* ── Trend / Controllers ── */}
-      <button
-        className="px-4 py-3 rounded-2xl border border-indigo-500 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold flex items-center gap-2"
-        onClick={() => { setTrendInitialParam(null); setShowTrends(true); }}
-      >
-        ⚙️ Controllers
-      </button>
 
       {showTrends && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50" style={{ zIndex: 60 }}>
@@ -99,24 +102,6 @@ export default function StatsBar({
         </div>
       )}
 
-      {/* ── Timeline ── */}
-      <button
-        className="px-4 py-3 rounded-2xl border border-indigo-500 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold flex items-center gap-2"
-        onClick={() => setShowTimeline(prev => !prev)}
-      >
-        {showTimeline ? '⏱️ Hide timeline' : '⏱️ Show timeline'}
-      </button>
-
-      {/* ── Beam activity ── */}
-      {totalMVBeams > 0 && (
-        <button
-          className="px-4 py-3 rounded-2xl border border-indigo-500 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold flex items-center gap-2"
-          onClick={() => setShowBeams(true)}
-        >
-          ⚡ Beams <span className="text-xs bg-indigo-200 text-indigo-800 px-1.5 py-0.5 rounded-full">{totalMVBeams}</span>
-        </button>
-      )}
-
       {showBeams && (
         <BeamViewer
           beamEventsByFile={beamEventsByFile}
@@ -125,14 +110,6 @@ export default function StatsBar({
         />
       )}
 
-      {/* ── Report ── */}
-      <button
-        className="px-4 py-3 rounded-2xl border border-blue-600 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold flex items-center gap-2"
-        onClick={() => setShowReport(true)}
-      >
-        📄 Report
-      </button>
-
       {showReport && (
         <Report
           trendData={trendData}
@@ -140,17 +117,6 @@ export default function StatsBar({
           onClose={() => setShowReport(false)}
           onOpenTrend={handleOpenTrend}
         />
-      )}
-
-      {/* ── Log activity (always last, rightmost) ── */}
-      {hasLogs && (
-        <button
-          className="px-4 py-3 rounded-2xl border border-blue-600 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold flex items-center gap-2"
-          onClick={() => setShowLog(true)}
-          title="Browse raw log activity in a time window"
-        >
-          📋 Log
-        </button>
       )}
 
       {showLog && (

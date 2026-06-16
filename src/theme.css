@@ -46,6 +46,58 @@
   --color-primary-dark: #d1d2d41a;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Dark mode — toggled via `html.dark`. Overrides the common Tailwind surface,
+   text and border utilities so the whole app flips without touching every
+   component. Data colours (timeline bars, charts) use inline styles and are
+   intentionally left untouched.
+   ───────────────────────────────────────────────────────────────────────── */
+html.dark { --color-primary-dark: #0e1014; color-scheme: dark; }
+html.dark, html.dark body { background-color: #0e1014; }
+
+.dark .bg-white            { background-color: #171a21 !important; }
+.dark .panel               { background-color: #171a21 !important; }
+.dark .bg-gray-50          { background-color: #1c2029 !important; }
+.dark .bg-gray-100         { background-color: #20242e !important; }
+.dark .bg-gray-200         { background-color: #2a2f3a !important; }
+.dark .bg-gray-300         { background-color: #3a4150 !important; }
+.dark .hover\:bg-gray-50:hover   { background-color: #232936 !important; }
+.dark .hover\:bg-gray-100:hover  { background-color: #283040 !important; }
+.dark .hover\:bg-gray-200:hover  { background-color: #313a4a !important; }
+.dark .hover\:bg-gray-300:hover  { background-color: #3a4150 !important; }
+.dark .bg-blue-100         { background-color: #1e3a5f !important; }
+.dark .bg-indigo-100       { background-color: #242b52 !important; }
+.dark .bg-blue-50          { background-color: #16233a !important; }
+.dark .bg-indigo-50        { background-color: #1c2140 !important; }
+.dark .bg-teal-50          { background-color: #0f2a2a !important; }
+.dark .bg-red-50           { background-color: #2a1618 !important; }
+.dark .bg-amber-50         { background-color: #2a2310 !important; }
+
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-primary        { color: #e8eaed !important; }
+.dark .text-gray-700,
+.dark .text-gray-600        { color: #c4c8cf !important; }
+.dark .text-gray-500,
+.dark .text-gray-400,
+.dark .text-gray-300        { color: #969ba5 !important; }
+
+.dark .border,
+.dark .border-t,
+.dark .border-b,
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark .divide-gray-100 > * + *,
+.dark .divide-gray-200 > * + *,
+.dark .ring-gray-100,
+.dark .ring-gray-200        { border-color: #2c333f !important; }
+
+.dark .shadow-lg,
+.dark .shadow-xl,
+.dark .shadow-2xl,
+.dark .shadow-md           { box-shadow: 0 8px 30px rgba(0,0,0,0.6) !important; }
+
 .threshold-error line {
   animation: pulse-line 1s infinite;
 }
@@ -94,7 +146,7 @@
 }
 
 .timeline-wrapper.open {
-  max-height: 120px;
+  max-height: 320px;
   opacity: 1;
   transform: translateY(0);
 }
