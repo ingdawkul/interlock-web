@@ -34,7 +34,7 @@ const STATE_LEGEND = [
 const MARKER_LEGEND = [
   { color: "#4EDFAF", label: "Power ON",  border: true, glow: "#4EDFAF" },
   { color: "#7c3aed", label: "Power OFF", border: true, glow: "#7c3aed" },
-  { color: "#16a34a", label: "Login",     thin: true },
+  { emoji: "👤",      label: "Login" },
 ]
 const FAULT_LEGEND = [
   { color: "rgba(220,38,38,0.75)", label: "Fault density (click row: heatmap ⇄ sparkline)" },
@@ -42,7 +42,10 @@ const FAULT_LEGEND = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-function LegendSwatch({ color, border, glow, thin }) {
+function LegendSwatch({ color, border, glow, thin, emoji }) {
+  if (emoji) {
+    return <span className="shrink-0 inline-block text-center" style={{ width: 18, fontSize: 13, lineHeight: "14px" }}>{emoji}</span>
+  }
   return (
     <span
       className="shrink-0 rounded-sm"
@@ -354,7 +357,7 @@ export default function App() {
 
         const {
           results: r, totalLines: t, matchLines: m,
-          machineName, downtimeByDate, systemModesByDate, trendData, parkedAt,
+          machineName, downtimeByDate, systemModesByDate, trendData, parkedAt, lastSeen,
           nodeEvents, nodeDisconnects, heartbeatLosses, coldStarts, silenceGaps,
           cbctDowns, exioEvents, imagingPsuEvents, irmEvents,
           stateEvents, machineStates, modeUpAttempts, modeUpLatencies, pelEvents, warmupDelays,
@@ -410,7 +413,8 @@ export default function App() {
             restarts: restarts || [],
             planLoads: planLoads || [],
             faultEvents,
-            parkedAt
+            parkedAt,
+            lastSeen
           }
         }
 
@@ -650,6 +654,7 @@ export default function App() {
                     faultEvents={fileNetwork[file]?.faultEvents || []}
                     planLoads={fileNetwork[file]?.planLoads || []}
                     dayEnd={fileNetwork[file]?.parkedAt}
+                    lastSeen={fileNetwork[file]?.lastSeen}
                     onOpenSessions={() => openEventsModal({ tab: 'session', file })}
                   />
                 </div>

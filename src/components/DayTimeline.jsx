@@ -89,12 +89,17 @@ export default function DayTimeline({
   faultEvents    = [],
   planLoads      = [],
   dayEnd,
+  lastSeen,
   onOpenSessions,
 }) {
   const [faultView, setFaultView] = useState("heatmap")   // "heatmap" | "sparkline"
 
-  // End-of-day cap (parked time) — keeps open segments from running to midnight.
-  const dayEndSec = dayEnd ? toSec(dayEnd) : DAY_SEC
+  // Session cap (parked time) — keeps the last login session from running to
+  // midnight. `lastSeenSec` is the last log line: a genuine end-of-day STANDBY
+  // extends to it (it really lasts all evening), whereas a stale ON (firmware that
+  // never logs standby) is capped at dayEndSec so it doesn't read as "ON all day".
+  const dayEndSec  = dayEnd   ? toSec(dayEnd)   : DAY_SEC
+  const lastSeenSec = lastSeen ? toSec(lastSeen) : DAY_SEC
 
   const validBeams = beamEvents.filter(b => b.startTime)
   const mvBeams    = validBeams.filter(b => b.isMV)
@@ -108,7 +113,9 @@ export default function DayTimeline({
 
   // Main bar = login-app sessions when the machine logs them (newer software);
   // otherwise it falls back to system modes (older software shows what it can).
-  const appSessions = logins.filter(l => l.source === "task")
+  // Both `task` (Invoking task) and `process` (Starting process=) are real session
+  // logins — Service Mode only logs as `process`, so it must be included here.
+  const appSessions = logins.filter(l => l.source === "task" || l.source === "process")
   const sessionSegments = appSessions.map((l, i) => ({
     app:   l.app,
     start: toSec(l.time),
@@ -173,7 +180,9 @@ export default function DayTimeline({
         {/* Main bar row — no label, so it fills full width when beams exist */}
         <div className="flex">
           {hasLabelCol && <div style={{ width: 28, flexShrink: 0 }} />}
-          <div className="relative flex-1 h-12 rounded-full overflow-hidden bg-gray-300">
+          {/* Wrapper is NOT clipped so login pins can stick up above the bar */}
+          <div className="relative flex-1">
+          <div className="relative h-12 rounded-full overflow-hidden bg-gray-300">
 
             {/* Gray base */}
             <div className="absolute inset-0" style={{ backgroundColor: "#9ca3af", zIndex: 1 }} />
@@ -234,20 +243,24 @@ export default function DayTimeline({
               )
             })}
 
-            {/* Login markers — only in the mode-fallback case; when the bar already
-                shows app sessions the segment boundaries are the logins. */}
-            {!showSessions && logins.map((l, i) => (
-              <div key={`login-${i}`}
-                onClick={onOpenSessions}
-                style={{
-                  position: "absolute", left: toPct(toSec(l.time)), transform: "translateX(-50%)",
-                  top: 0, height: "28%", width: "2px", backgroundColor: "#16a34a",
-                  zIndex: 6, cursor: onOpenSessions ? "pointer" : "default",
-                }}
-                title={`👤 ${l.app} ${l.time}`}
-              />
-            ))}
-          </div>
+          </div>{/* close clipped bar */}
+
+          {/* Login pins — 👤 above the bar at each login, on every machine
+              (session-based and mode-fallback alike). */}
+          {logins.map((l, i) => (
+            <div key={`login-${i}`}
+              onClick={onOpenSessions}
+              title={`👤 Login ${l.time} — ${l.app}${l.user && l.user !== l.app ? ` (${l.user})` : ""}`}
+              style={{
+                position: "absolute", left: toPct(toSec(l.time)), transform: "translateX(-50%)",
+                top: -14, zIndex: 20, fontSize: 13, lineHeight: 1,
+                cursor: onOpenSessions ? "pointer" : "default",
+              }}
+            >
+              👤
+            </div>
+          ))}
+          </div>{/* close wrapper */}
         </div>
 
         {/* Machine-state row (Module 3) — raw min-width slivers, auto-hidden when empty */}
@@ -259,7 +272,10 @@ export default function DayTimeline({
             <div className="relative flex-1 h-3 rounded-full bg-gray-100 overflow-hidden">
               {machineStates.map((s, i) => {
                 const start = toSec(s.start)
-                const end   = s.end ? toSec(s.end) : dayEndSec
+                // Open (last) state: a real STANDBY/POWEROFF lasts until the log ends;
+                // a stale ON is capped at the parked time.
+                const openEnd = (s.state === "STANDBY" || s.state === "POWEROFF") ? lastSeenSec : dayEndSec
+                const end   = s.end ? toSec(s.end) : openEnd
                 const cause = s.cause
                   ? `\n${s.cause.category === "power-loop-open" ? "Power loop open" : "Power interlock"}`
                   : ""

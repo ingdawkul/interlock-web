@@ -378,18 +378,23 @@ function StateTab({ data }) {
   const latencies = data?.modeUpLatencies || [];
   const warmups = data?.warmupDelays || [];
 
-  // Auto-zoomed strip window from state activity
+  // Auto-zoomed strip window from state activity. An open (last) state ends at the
+  // last log line if it's a real STANDBY/POWEROFF (lasts all evening), else at the
+  // parked time (a stale ON shouldn't read as "ON all day").
   const strip = useMemo(() => {
+    const lastSeenSec = data?.lastSeen ? toSec(data.lastSeen) : 86400;
+    const parkedSec = data?.parkedAt ? toSec(data.parkedAt) : 86400;
+    const openEndOf = (s) => (s.state === "STANDBY" || s.state === "POWEROFF") ? lastSeenSec : parkedSec;
     const secs = [];
-    states.forEach(s => { if (s.start) secs.push(toSec(s.start)); if (s.end) secs.push(toSec(s.end)); });
+    states.forEach(s => { if (s.start) secs.push(toSec(s.start)); secs.push(s.end ? toSec(s.end) : openEndOf(s)); });
     const valid = secs.filter(s => s != null);
     if (!valid.length) return null;
     let winStart = Math.max(0, Math.min(...valid));
     let winEnd = Math.min(86400, Math.max(...valid));
     if (winEnd - winStart < 600) winEnd = winStart + 600;
     const span = winEnd - winStart;
-    return { winStart, winEnd, span, pct: (s) => Math.max(0, Math.min(100, ((s - winStart) / span) * 100)) };
-  }, [states]);
+    return { winStart, winEnd, span, openEndOf, pct: (s) => Math.max(0, Math.min(100, ((s - winStart) / span) * 100)) };
+  }, [data]);
 
   if (!states.length && !pel.length && !latencies.length) {
     return <p className="text-sm text-gray-400">No machine-state transitions in this file.</p>;
@@ -404,7 +409,7 @@ function StateTab({ data }) {
           <div className="relative h-6 rounded-md overflow-hidden bg-gray-100">
             {states.map((s, i) => {
               const l = strip.pct(toSec(s.start));
-              const end = s.end ? toSec(s.end) : strip.winEnd;
+              const end = s.end ? toSec(s.end) : strip.openEndOf(s);
               const w = Math.max(0.5, strip.pct(end) - l);
               const cause = s.cause ? (s.cause.category === "power-loop-open" ? " · power loop open" : " · power interlock") : "";
               return (

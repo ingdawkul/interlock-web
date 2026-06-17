@@ -256,6 +256,30 @@ const APP_NAME_MAP = {
   PVACalibration:          "Imager Calibration",
   AdvancedReconstruction:  "Adv. Reconstruction",
 };
+
+// Second login signature: "Starting process=…\<exe> using domain=<d> user=<u>".
+// REQUIRED because Service Mode is logged ONLY this way — it never produces an
+// "Invoking task" line — and this form carries the domain + user directly.
+const PROCESS_LOGIN_REGEX = /Starting process=.*\\([\w.]+\.exe) using domain=(\w+) user=(\S+)/i;
+const EXE_TO_MODE = {
+  "vms.itc.servicemode.servicemode.exe": "Service",
+  "vms.itc.clinical.exe":                "Treatment",
+  "vms.ti.calibration.app.exe":          "Imager Calibration",
+  "vms.itc.pmi.instantpmi.view.exe":     "PMI",
+  "vms.cr.ar.exe":                       "Adv. Reconstruction",
+  "vms.ti.pva.app.exe":                  "Imaging/PVA",
+};
+// PVA/AR auto-start as secondary apps seconds after a primary login — they must
+// not become their own login rows when they trail a primary within the window.
+// PVA/AR follow a Treatment login; Imager Calibration is auto-opened by Service
+// Mode (a `process` launch ~1s after the Service login). These trailing `process`
+// launches are folded; the standalone Imager Calibration *task* login is kept.
+const SECONDARY_APPS  = new Set(["Imaging/PVA", "Adv. Reconstruction", "Imager Calibration"]);
+// Window for treating two logins as one session. The spec suggested 10s, but the
+// real logs show the "Invoking task" and "Starting process=" forms of the SAME
+// login arriving 15–80s apart (machine/version dependent); distinct same-app
+// sessions are >100s apart, so 90s merges the pairs without over-merging.
+const LOGIN_DEDUP_SEC = 90;
 const RESTART_SIGNATURES = [
   { hint: "ClinacModelServer module starting", kind: "cms-restart" },
   { hint: "InitAssistant module started",       kind: "initialize" },
@@ -269,6 +293,44 @@ const HIPAA_LOGIN_REGEX = /HIPAALogging: User\[([^\]]*)\],\s*Comment\["Login Pri
 const HIPAA_USER_REGEX  = /HIPAALogging: User\[([^\]]*)\]/;
 function normalizeUser(u) {
   return (u || "").replace(/^.*\\/, "").trim();  // drop domain prefix (sikt\kengro → kengro)
+}
+
+// Collapse logins that describe the same session across sources. The same login
+// is often recorded twice (e.g. "Invoking task Treatment" + "Starting process
+// …clinical.exe") within seconds, while Service Mode appears only as `process`.
+// Rules: drop secondary-app (PVA/AR) process logins that trail any primary login
+// within the window; merge same-app logins within the window, taking `technique`
+// from the task source and `user`/`domain` from the process source, keeping the
+// earliest time. Order-independent.
+function loginSecOf(t) {
+  const [h, m, s = 0] = t.split(":").map(Number);
+  return h * 3600 + m * 60 + s;
+}
+function dedupLogins(raw) {
+  const sorted = [...raw].sort((a, b) => loginSecOf(a.time) - loginSecOf(b.time));
+  const primarySecs = sorted.filter(l => !SECONDARY_APPS.has(l.app)).map(l => loginSecOf(l.time));
+  const result = [];
+  for (const lg of sorted) {
+    const lgSec = loginSecOf(lg.time);
+    // Drop a secondary-app (PVA/AR) process login that sits next to any primary
+    if (lg.source === "process" && SECONDARY_APPS.has(lg.app) &&
+        primarySecs.some(ps => Math.abs(ps - lgSec) <= LOGIN_DEDUP_SEC)) {
+      continue;
+    }
+    // Merge with an existing same-app login inside the window
+    const dup = result.find(r => r.app === lg.app && Math.abs(loginSecOf(r.time) - lgSec) <= LOGIN_DEDUP_SEC);
+    if (dup) {
+      if (lg.source === "task" && lg.technique) dup.technique = lg.technique;
+      if (lg.source === "process") {
+        if (lg.user)   dup.user   = lg.user;
+        if (lg.domain) dup.domain = lg.domain;
+      }
+      if (lgSec < loginSecOf(dup.time)) { dup.time = lg.time; dup.date = lg.date; } // earliest
+      continue;
+    }
+    result.push({ ...lg });
+  }
+  return result;
 }
 
 // Split "A B: description" → { flags: "A B", text: "description" }. Some
@@ -371,7 +433,7 @@ export function parseLogText(text, progressCallback, options = {}) {
   const pelEvents       = [];         // [{ date, time, source, inferred, mode, reason }]
 
   // Sessions / logins (Module 5)
-  const logins       = [];            // [{ date, time, app, rawApp, technique }]
+  let   logins       = [];            // [{ date, time, app, rawApp, technique, user?, domain?, source }]
   const failedLogins = [];            // [{ date, time, technique, app }]
   const restarts     = [];            // [{ date, time, kind }]
   const planLoads    = [];            // [{ date, time, planUid }]
@@ -605,6 +667,16 @@ export function parseLogText(text, progressCallback, options = {}) {
           date: dateStr, time: timeStr, source: "task",
           rawApp: "SystemAdmin", app: "System Administration", technique: null
         });
+      } else if (line.indexOf("Starting process=") !== -1) {
+        // The only form Service Mode logs on; carries domain + user directly.
+        const pm = PROCESS_LOGIN_REGEX.exec(line);
+        const mode = pm && EXE_TO_MODE[pm[1].toLowerCase()];
+        if (mode) {
+          logins.push({
+            date: dateStr, time: timeStr, source: "process",
+            rawApp: mode, app: mode, user: normalizeUser(pm[3]), domain: pm[2], technique: null
+          });
+        }
       }
 
       // Track the active operator from any HIPAA line (used to attach "who")
@@ -880,16 +952,29 @@ export function parseLogText(text, progressCallback, options = {}) {
     });
   }
 
-  // "Parked for the day": when no logout is logged, open segments shouldn't run to
-  // midnight. Cap them at the last log timestamp — or, if the machine ended in
-  // STANDBY/POWEROFF after the last login, at that park point.
+  // "Parked for the day": when no explicit logout/standby is logged, open segments
+  // shouldn't run to midnight. Many firmwares (e.g. SN5724) never log STANDBY and
+  // keep emitting routine odometer/heartbeat lines for hours after the operator
+  // parks, so the LAST log line is a poor cap. Instead cap at the last *operator-
+  // meaningful* event (login, state change, fault, interlock, node, plan) — or, if
+  // the machine ended in STANDBY/POWEROFF after the last login, at that park point.
   const taskLoginSecs = logins.filter(l => l.source === "task").map(l => toSecOfDay(l.time));
   const lastLoginSec  = taskLoginSecs.length ? Math.max(...taskLoginSecs) : 0;
+  const eventTimes = [];
+  for (const l of logins)          eventTimes.push(toSecOfDay(l.time));
+  for (const s of stateEvents)     eventTimes.push(toSecOfDay(s.time));
+  for (const e of interlockEvents) eventTimes.push(toSecOfDay(e.time));
+  for (const o of orphanRemovals)  eventTimes.push(toSecOfDay(o.time));
+  for (const iv of faultIntervals) eventTimes.push(toSecOfDay(iv.end || iv.start));
+  for (const e of nodeEvents)      eventTimes.push(toSecOfDay(e.time));
+  for (const p of planLoads)       eventTimes.push(toSecOfDay(p.time));
+  const lastEventSec = eventTimes.length ? Math.max(...eventTimes) : lastStampSec;
+
   const allStates = activeState
     ? [...machineStates, { start: activeState.startTime, state: activeState.state }]
     : machineStates;
   const lastState = allStates.length ? allStates[allStates.length - 1] : null;
-  let parkedSec = lastStampSec;
+  let parkedSec = lastEventSec;
   if (lastState && (lastState.state === "STANDBY" || lastState.state === "POWEROFF") && lastState.start) {
     const ss = toSecOfDay(lastState.start);
     if (ss >= lastLoginSec) parkedSec = ss;
@@ -976,12 +1061,36 @@ export function parseLogText(text, progressCallback, options = {}) {
     }
   }
 
-  // Login fallback (Module 5): older software logs no "Invoking task" line, so
-  // fall back to HIPAA "Login Primary User" entries (keyed by user, no technique).
+  // Deduplicate logins across sources (task / process / SystemAdmin) — collapses
+  // the same session logged multiple ways and folds away PVA/AR secondary apps.
+  logins = dedupLogins(logins);
+
+  // Login fallback (Module 5): LAST resort only. Now that `Starting process=` is
+  // captured, `logins` is rarely empty — this fires only for old software that
+  // logs neither "Invoking task" nor "Starting process=", just HIPAA logging.
   if (logins.length === 0 && hipaaLogins.length > 0) {
+    // HIPAA logins carry only the user, not the mode. Best-effort: attach the
+    // system mode ("switching to X mode") active at the login time so the UI can
+    // show which mode the user logged into rather than just the username.
+    const MODE_FRIENDLY = { CLINICAL: "Clinical", SERVICE: "Service", QA: "QA", SMC: "SMC", PMI: "PMI", INSTALL: "Install" };
+    const allModes = Object.values(systemModesByDate).flat();
+    const modeAt = (sec) => {
+      let best = null;
+      for (const m of allModes) {
+        const s = toSecOfDay(m.start);
+        const e = m.end === "24:00" ? 86400 : toSecOfDay(m.end);
+        if (sec >= s && sec < e) return m.mode;   // mode interval contains the login
+        if (s <= sec) best = m.mode;              // else the last mode entered before it
+      }
+      return best;
+    };
     for (const h of hipaaLogins) {
       const u = normalizeUser(h.user);
-      logins.push({ date: h.date, time: h.time, source: "hipaa", rawApp: u, app: u, user: u, technique: null });
+      const mode = modeAt(toSecOfDay(h.time));
+      logins.push({
+        date: h.date, time: h.time, source: "hipaa",
+        rawApp: u, app: mode ? MODE_FRIENDLY[mode] || mode : u, user: u, technique: null
+      });
     }
   }
 
@@ -1092,7 +1201,8 @@ export function parseLogText(text, progressCallback, options = {}) {
     downtimeByDate,
     systemModesByDate,
     trendData,
-    parkedAt,             // end-of-day cap (last activity / park-to-standby)
+    parkedAt,             // session cap (last activity / park-to-standby start)
+    lastSeen: secToHHMMSS(lastStampSec),  // last log timestamp (for extending a real standby)
     // ── Module 1 additions ──
     faultIntervals,       // matched raise↔removed spans (+ open at EOF)
     orphanRemovals,       // removals with no preceding raise in this file
