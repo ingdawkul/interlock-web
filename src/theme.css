@@ -72,6 +72,8 @@ html.dark, html.dark body { background-color: #0e1014; }
 .dark .bg-teal-50          { background-color: #0f2a2a !important; }
 .dark .bg-red-50           { background-color: #2a1618 !important; }
 .dark .bg-amber-50         { background-color: #2a2310 !important; }
+.dark .text-amber-800,
+.dark .text-amber-700      { color: #fbbf24 !important; }
 
 .dark .text-gray-900,
 .dark .text-gray-800,
@@ -92,6 +94,7 @@ html.dark, html.dark body { background-color: #0e1014; }
 .dark .divide-gray-200 > * + *,
 .dark .ring-gray-100,
 .dark .ring-gray-200        { border-color: #2c333f !important; }
+.dark .border-amber-200     { border-color: #4a3a10 !important; }
 
 .dark .shadow-lg,
 .dark .shadow-xl,

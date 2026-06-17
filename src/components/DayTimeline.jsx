@@ -24,19 +24,25 @@ export function getModeColor(mode) {
 // Stable colour per login-app/user name — shared by the main bar, the session
 // strip and the legend so they always agree. Known apps get a fixed, vivid colour
 // (no gray/muddy tones); anything else hashes over a gray-free palette.
+// Hues chosen to spread around the wheel so segments that sit next to each other
+// on the session strip stay easy to tell apart. Notably Restart is violet (was
+// indigo, too close to Treatment's blue) and Adv. Reconstruction is lime (was
+// gold, too close to Service's orange — and Service auto-opens it).
 const APP_COLOR_MAP = {
   "Treatment":           "#2563eb",  // blue
   "Service":             "#ea580c",  // orange
   "Machine QA":          "#16a34a",  // green
-  "MPC":                 "#9333ea",  // purple
+  "MPC":                 "#0d9488",  // teal
   "PMI":                 "#0891b2",  // cyan
   "Imager Calibration":  "#db2777",  // pink
-  "Adv. Reconstruction": "#ca8a04",  // gold
-  "Restart":             "#4f46e5",  // indigo
+  "Adv. Reconstruction": "#84cc16",  // lime
+  "Restart":             "#7c3aed",  // violet
 }
+// Fallback for any unmapped app — gray-free and kept distinct from the fixed
+// colours above so a hashed app doesn't collide with a known one.
 const APP_PALETTE = [
-  "#2563eb", "#ea580c", "#16a34a", "#9333ea", "#0891b2", "#db2777",
-  "#ca8a04", "#65a30d", "#0d9488", "#c026d3", "#4f46e5", "#f43f5e",
+  "#eab308", "#e11d48", "#9333ea", "#0ea5e9", "#65a30d",
+  "#c026d3", "#0f766e", "#b45309", "#4f46e5", "#15803d",
 ]
 export function appColor(name) {
   if (APP_COLOR_MAP[name]) return APP_COLOR_MAP[name]

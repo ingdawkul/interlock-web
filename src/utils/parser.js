@@ -213,8 +213,9 @@ const EMO_GROUP_GAP_SEC = 120;      // EMO sub-events within 2 min = one episode
 // Known fault IDs → the circuit breaker / subsystem they point at, derived from
 // the 2026-06-15 SB16 retest (breaker tripped at a known time → faults observed).
 // `cb` may be an array when a fault can't be uniquely attributed (e.g. 334078
-// filament power is shared by both thyratron breakers + CONT power). Breaker codes
-// match BREAKER_CATALOG in the UI. Generic POS-PCB faults (214261/262/268, 227073)
+// filament power is shared by both thyratron breakers). Breaker codes match
+// BREAKER_CATALOG in the UI. CONT Power has no unique fault signature (its test
+// produced only generic line/motor faults), so it is intentionally not listed. Generic POS-PCB faults (214261/262/268, 227073)
 // and RFSPS solenoid (2040/2041/2042) are deliberately NOT mapped — they fire for
 // several causes (incl. EXIO PC tests) so attributing them to one breaker misleads.
 export const CB_SIGNATURES = {

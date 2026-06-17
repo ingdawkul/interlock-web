@@ -40,6 +40,91 @@ const FAULT_LEGEND = [
   { color: "rgba(220,38,38,0.75)", label: "Fault density (click row: heatmap ⇄ sparkline)" },
 ]
 
+// ── Lost-log detection (Module 6) ─────────────────────────────────────────────
+// A "lost-log" window is a gap in the machine syslog ("SN# ####") during which
+// the workstation kept logging (`wkstLines` high). The syslog chain was down —
+// usually a power cut killing the syslog server — so any faults/interlocks in
+// that window are missing from this file. We surface the windows so the operator
+// knows the day's record has holes rather than reading a clean stretch.
+const LOST_LOG_MIN_WKST = 50
+// Only a substantial hole is worth alarming about. Some firmwares (e.g. SN5724)
+// produce frequent 3–7 min syslog blips during normal operation; flagging those
+// would cry wolf. A real outage (power cut killing the syslog server) is much
+// longer. The Network tab still shades every significant gap for detail work.
+const LOST_LOG_MIN_MINUTES = 15
+
+function llToSec(t) {
+  if (!t) return null
+  const [h, m, s = 0] = t.split(":").map(Number)
+  return h * 3600 + m * 60 + s
+}
+
+// Operating window = first machine/login activity → parked / last-seen. Silence
+// gaps that fall outside it are not lost operational data — the machine simply
+// wasn't running. This filters the nightly AutomaticPartsMaintenance run (~02:00,
+// machine parked) that otherwise looks like a syslog-chain-down window.
+function operatingWindow(bundle) {
+  const starts = []
+  if (bundle.machineStates?.length) {
+    const s = llToSec(bundle.machineStates[0].start)
+    if (s != null) starts.push(s)
+  }
+  if (bundle.logins?.length) {
+    const ls = bundle.logins.map(l => llToSec(l.time)).filter(x => x != null)
+    if (ls.length) starts.push(Math.min(...ls))
+  }
+  const dayStart = starts.length ? Math.min(...starts) : null
+  const dayEnd = llToSec(bundle.parkedAt) ?? llToSec(bundle.lastSeen)
+  return { dayStart, dayEnd }
+}
+
+function lostLogWindows(bundle) {
+  if (!bundle || !bundle.silenceGaps) return []
+  const { dayStart, dayEnd } = operatingWindow(bundle)
+  return bundle.silenceGaps
+    .filter(g => (g.wkstLines || 0) >= LOST_LOG_MIN_WKST && (g.durationMin || 0) >= LOST_LOG_MIN_MINUTES)
+    .map(g => ({
+      start: g.start?.time, end: g.end?.time,
+      durationMin: g.durationMin, wkstLines: g.wkstLines,
+    }))
+    .filter(w => w.start && w.end)
+    .filter(w => {
+      const a = llToSec(w.start), b = llToSec(w.end)
+      if (dayStart != null && b <= dayStart) return false  // before the day began
+      if (dayEnd != null && a >= dayEnd) return false      // after the machine was parked
+      return true
+    })
+}
+
+function fmtGapDur(min) {
+  if (min == null) return ""
+  if (min < 60) return `${Math.round(min)} min`
+  const h = Math.floor(min / 60), m = Math.round(min % 60)
+  return m ? `${h} h ${m} min` : `${h} h`
+}
+
+function LostLogBanner({ windows }) {
+  if (!windows.length) return null
+  return (
+    <div className="mt-1.5 flex items-start gap-2 text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">
+      <span className="text-sm leading-none mt-px">⚠️</span>
+      <div>
+        <span className="font-semibold">Log data lost</span>
+        {" — the machine syslog went silent while the workstation kept logging. "}
+        {windows.length === 1 ? "Events in this window are missing:" : "Events in these windows are missing:"}
+        <ul className="mt-1 space-y-0.5 list-none">
+          {windows.map((w, i) => (
+            <li key={i} className="font-medium">
+              {w.start}–{w.end}
+              <span className="font-normal text-amber-700"> ({fmtGapDur(w.durationMin)}, ~{w.wkstLines.toLocaleString()} lines logged during the outage)</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 function LegendSwatch({ color, border, glow, thin, emoji }) {
@@ -640,6 +725,8 @@ export default function App() {
                   </span>
                 )}
               </div>
+
+              {showTimeline && <LostLogBanner windows={lostLogWindows(fileNetwork[file])} />}
 
               <div className={`timeline-wrapper ${showTimeline ? 'open' : 'closed'}`}>
                 <div className="timeline-inner">

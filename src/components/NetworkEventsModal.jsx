@@ -30,13 +30,12 @@ const BREAKER_CATALOG = [
   { cb: "CB12",    name: "CB12" },
   { cb: "DQTHY",   name: "DQ THY" },
   { cb: "MAINTHY", name: "MAIN THY" },
-  { cb: "CONT",    name: "CONT Power" },
   { cb: "KVGEN",   name: "kV Gen" },
 ];
 const CB_COLORS = {
   CB1: "#993556", CB2: "#185FA5", CB3: "#0F6E56", CB6: "#0891b2", CB7: "#b45309",
   CB8: "#854F0B", CB9: "#15803d", CB12: "#6d28d9", DQTHY: "#be185d",
-  MAINTHY: "#7c3aed", CONT: "#993C1D", KVGEN: "#534AB7",
+  MAINTHY: "#7c3aed", KVGEN: "#534AB7",
 };
 
 // Fixed node lane order (top → bottom). "ALL" = the 120001 "all nodes disconnected".
